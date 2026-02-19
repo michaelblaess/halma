@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { GameState, Difficulty, Player } from '../model/types';
 import { getGoalZone } from '../model/board';
+import { musicToggle, musicIsPlaying } from '../audio/music';
 import DifficultySelect from './DifficultySelect';
 
 interface HighscoreEntry {
@@ -122,6 +123,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
   const isHumanTurn = currentPlayer === humanPlayer;
   const currentHighscores = highscores[difficulty];
   const [showHighscoreOverlay, setShowHighscoreOverlay] = useState(false);
+  const [musicOn, setMusicOn] = useState(musicIsPlaying);
 
   const humanWon = winner === humanPlayer;
   const aiWon = winner !== null && !humanWon;
@@ -142,7 +144,16 @@ const GameInfo: React.FC<GameInfoProps> = ({
 
   return (
     <div className="game-info">
-      <h1>Sternhalma</h1>
+      <div className="title-row">
+        <h1>Sternhalma</h1>
+        <button
+          className={`music-btn ${musicIsPlaying() ? 'music-on' : ''}`}
+          onClick={() => { musicToggle(); setMusicOn(musicIsPlaying()); }}
+          title={musicOn ? 'Musik aus' : 'Musik an'}
+        >
+          {musicOn ? '\u266B' : '\u266A'}
+        </button>
+      </div>
 
       {/* Player Name */}
       <div className="name-input">

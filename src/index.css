@@ -26,6 +26,13 @@ body {
   max-width: 300px;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
 .game-info h1 {
   font-size: 1.8rem;
   font-weight: 700;
@@ -34,6 +41,34 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Music Button */
+.music-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #475569;
+  border-radius: 50%;
+  background: #1e293b;
+  color: #64748b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.music-btn:hover {
+  border-color: #3b82f6;
+  color: #e2e8f0;
+}
+
+.music-btn.music-on {
+  border-color: #3b82f6;
+  color: #60a5fa;
+  background: #1e3a5f;
 }
 
 /* Difficulty Select */
