@@ -14,6 +14,9 @@ export interface GameState {
   winner: Player | null;
   difficulty: Difficulty;
   isAiThinking: boolean;
+  fastMode: boolean;
+  startTime: number | null;
+  endTime: number | null;
 }
 
 export interface Move {

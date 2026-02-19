@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef, useCallback } from 'react';
+import { useReducer, useEffect, useRef, useCallback, useState } from 'react';
 import type { GameState, Move, Difficulty, CellState, Player } from '../model/types';
 import { createInitialBoard, serializeBoard } from '../model/board';
 import {
@@ -9,6 +9,36 @@ import {
   opponent,
 } from '../model/gameLogic';
 
+// --- Highscore ---
+
+interface HighscoreEntry {
+  time: number;
+  date: string;
+}
+
+type Highscores = Record<Difficulty, HighscoreEntry[]>;
+
+const HIGHSCORE_KEY = 'halma-highscores';
+
+function loadHighscores(): Highscores {
+  try {
+    const raw = localStorage.getItem(HIGHSCORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return { easy: [], medium: [], hard: [] };
+}
+
+function saveHighscore(difficulty: Difficulty, time: number): Highscores {
+  const scores = loadHighscores();
+  scores[difficulty].push({ time, date: new Date().toISOString().slice(0, 10) });
+  scores[difficulty].sort((a, b) => a.time - b.time);
+  scores[difficulty] = scores[difficulty].slice(0, 5);
+  localStorage.setItem(HIGHSCORE_KEY, JSON.stringify(scores));
+  return scores;
+}
+
+// --- Reducer ---
+
 type GameAction =
   | { type: 'SELECT_PIECE'; pos: string }
   | { type: 'MOVE_PIECE'; to: string }
@@ -16,11 +46,13 @@ type GameAction =
   | { type: 'AI_MOVE'; move: Move }
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
   | { type: 'SET_SIDE'; humanPlayer: Player }
-  | { type: 'RESTART' };
+  | { type: 'RESTART' }
+  | { type: 'TOGGLE_FAST_MODE' };
 
 function createInitialState(
   difficulty: Difficulty = 'medium',
-  humanPlayer: Player = 2
+  humanPlayer: Player = 2,
+  fastMode: boolean = true
 ): GameState {
   return {
     board: createInitialBoard(),
@@ -32,6 +64,9 @@ function createInitialState(
     winner: null,
     difficulty,
     isAiThinking: humanPlayer !== 1, // if human is not player 1, AI goes first
+    fastMode,
+    startTime: Date.now(),
+    endTime: null,
   };
 }
 
@@ -42,6 +77,23 @@ function computeValidMovesList(
 ): string[] {
   const { simpleMoves, jumpMoves } = getValidMoves(pos, board, player);
   return [...simpleMoves, ...Array.from(jumpMoves.keys())];
+}
+
+function finishTurn(state: GameState, newBoard: Map<string, CellState>, player: Player): GameState {
+  const ai = opponent(state.humanPlayer);
+  const isPlayerWin = checkWin(newBoard, player);
+  const winner = isPlayerWin ? player : null;
+  return {
+    ...state,
+    board: newBoard,
+    selectedPiece: null,
+    validMoves: [],
+    jumpPath: [],
+    currentPlayer: winner ? player : (player === state.humanPlayer ? ai : state.humanPlayer),
+    winner,
+    isAiThinking: !winner && player === state.humanPlayer,
+    endTime: winner ? Date.now() : null,
+  };
 }
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -81,35 +133,20 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const wasSimpleMove = simpleMoves.includes(to);
 
       if (wasSimpleMove) {
-        const winner = checkWin(newBoard, hp) ? hp : null;
-        return {
-          ...state,
-          board: newBoard,
-          selectedPiece: null,
-          validMoves: [],
-          jumpPath: [],
-          currentPlayer: winner ? hp : ai,
-          winner,
-          isAiThinking: !winner,
-        };
+        return finishTurn(state, newBoard, hp);
       }
 
-      // Was a jump - check for continuing jumps
+      // Was a jump — in fast mode, end turn immediately
+      if (state.fastMode) {
+        return finishTurn(state, newBoard, hp);
+      }
+
+      // Normal mode: check for continuing jumps
       const visitedInChain = new Set([...state.jumpPath, from, to]);
       const continuingJumps = getContinuingJumps(to, newBoard, hp, visitedInChain);
 
       if (continuingJumps.length === 0) {
-        const winner = checkWin(newBoard, hp) ? hp : null;
-        return {
-          ...state,
-          board: newBoard,
-          selectedPiece: null,
-          validMoves: [],
-          jumpPath: [],
-          currentPlayer: winner ? hp : ai,
-          winner,
-          isAiThinking: !winner,
-        };
+        return finishTurn(state, newBoard, hp);
       }
 
       // More jumps available
@@ -124,41 +161,38 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'END_TURN': {
       if (state.jumpPath.length === 0) return state;
-      const winner = checkWin(state.board, hp) ? hp : null;
-      return {
-        ...state,
-        selectedPiece: null,
-        validMoves: [],
-        jumpPath: [],
-        currentPlayer: winner ? hp : ai,
-        winner,
-        isAiThinking: !winner,
-      };
+      return finishTurn(state, state.board, hp);
     }
 
     case 'AI_MOVE': {
       const { move } = action;
       const newBoard = applyMove(state.board, move.from, move.to);
-      const winner = checkWin(newBoard, ai) ? ai : null;
+      const isAiWin = checkWin(newBoard, ai);
+      const winner = isAiWin ? ai : null;
       return {
         ...state,
         board: newBoard,
         currentPlayer: winner ? ai : hp,
         winner,
         isAiThinking: false,
+        endTime: winner ? Date.now() : null,
       };
     }
 
     case 'SET_DIFFICULTY': {
-      return createInitialState(action.difficulty, state.humanPlayer);
+      return createInitialState(action.difficulty, state.humanPlayer, state.fastMode);
     }
 
     case 'SET_SIDE': {
-      return createInitialState(state.difficulty, action.humanPlayer);
+      return createInitialState(state.difficulty, action.humanPlayer, state.fastMode);
     }
 
     case 'RESTART': {
-      return createInitialState(state.difficulty, state.humanPlayer);
+      return createInitialState(state.difficulty, state.humanPlayer, state.fastMode);
+    }
+
+    case 'TOGGLE_FAST_MODE': {
+      return { ...state, fastMode: !state.fastMode };
     }
 
     default:
@@ -166,14 +200,40 @@ function gameReducer(state: GameState, action: GameAction): GameState {
   }
 }
 
+// --- Hook ---
+
 export function useGame() {
   const [state, dispatch] = useReducer(
     gameReducer,
-    createInitialState('medium', 2)
+    createInitialState('medium', 2, true)
   );
   const workerRef = useRef<Worker | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [highscores, setHighscores] = useState<Highscores>(loadHighscores);
 
   const aiPlayer = opponent(state.humanPlayer);
+
+  // Timer interval
+  useEffect(() => {
+    if (state.startTime && !state.endTime) {
+      const id = setInterval(() => {
+        setElapsedMs(Date.now() - state.startTime!);
+      }, 100);
+      return () => clearInterval(id);
+    }
+    if (state.endTime && state.startTime) {
+      setElapsedMs(state.endTime - state.startTime);
+    }
+  }, [state.startTime, state.endTime]);
+
+  // Save highscore on human win
+  useEffect(() => {
+    if (state.winner === state.humanPlayer && state.startTime && state.endTime) {
+      const time = state.endTime - state.startTime;
+      const updated = saveHighscore(state.difficulty, time);
+      setHighscores(updated);
+    }
+  }, [state.winner, state.humanPlayer, state.startTime, state.endTime, state.difficulty]);
 
   // Initialize worker
   useEffect(() => {
@@ -226,5 +286,20 @@ export function useGame() {
     dispatch({ type: 'RESTART' });
   }, []);
 
-  return { state, selectPiece, movePiece, endTurn, setDifficulty, setSide, restart };
+  const toggleFastMode = useCallback(() => {
+    dispatch({ type: 'TOGGLE_FAST_MODE' });
+  }, []);
+
+  return {
+    state,
+    selectPiece,
+    movePiece,
+    endTurn,
+    setDifficulty,
+    setSide,
+    restart,
+    toggleFastMode,
+    elapsedMs,
+    highscores,
+  };
 }

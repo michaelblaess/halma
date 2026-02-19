@@ -165,6 +165,126 @@ body {
   color: #e2e8f0;
 }
 
+/* Timer */
+.timer-display {
+  text-align: center;
+}
+
+.timer-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: #e2e8f0;
+  letter-spacing: 2px;
+}
+
+.timer-stopped {
+  color: #34d399;
+}
+
+/* Fast Mode Toggle */
+.fast-mode-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+
+.toggle-btn {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+}
+
+.toggle-on {
+  background: #3b82f6;
+}
+
+.toggle-off {
+  background: #475569;
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.2s;
+}
+
+.toggle-on .toggle-knob {
+  left: 22px;
+}
+
+.toggle-off .toggle-knob {
+  left: 2px;
+}
+
+.toggle-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Highscores */
+.highscores {
+  border-top: 1px solid #334155;
+  padding-top: 16px;
+}
+
+.highscores h3 {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.highscore-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.highscore-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #0f172a;
+  font-size: 0.85rem;
+}
+
+.highscore-list li:first-child {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.hs-time {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.hs-date {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
 /* Rules */
 .rules {
   border-top: 1px solid #334155;

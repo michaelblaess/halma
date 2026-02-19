@@ -4,8 +4,18 @@ import GameInfo from './components/GameInfo';
 import styles from './App.module.css';
 
 function App() {
-  const { state, selectPiece, movePiece, endTurn, setDifficulty, setSide, restart } =
-    useGame();
+  const {
+    state,
+    selectPiece,
+    movePiece,
+    endTurn,
+    setDifficulty,
+    setSide,
+    restart,
+    toggleFastMode,
+    elapsedMs,
+    highscores,
+  } = useGame();
 
   return (
     <div className={styles.app}>
@@ -16,6 +26,9 @@ function App() {
         onSetDifficulty={setDifficulty}
         onSetSide={setSide}
         onRestart={restart}
+        onToggleFastMode={toggleFastMode}
+        elapsedMs={elapsedMs}
+        highscores={highscores}
       />
     </div>
   );
