@@ -12,6 +12,7 @@ import {
   soundLoss,
   soundRestart,
 } from './audio/sounds';
+import { musicAutoStart } from './audio/music';
 
 const PLAYER_NAME_KEY = 'halma-player-name';
 
@@ -44,6 +45,9 @@ function App() {
     elapsedMs,
     highscores,
   } = useGame(playerName);
+
+  // Auto-start music on first user interaction
+  useEffect(() => { musicAutoStart(); }, []);
 
   // --- Sound-wrapped callbacks ---
 

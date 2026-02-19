@@ -78,3 +78,17 @@ export function musicSetVolume(v: number) {
 export function musicIsPlaying(): boolean {
   return isPlaying;
 }
+
+// Auto-start music on first user interaction (browser requires gesture)
+let autoStartRegistered = false;
+export function musicAutoStart() {
+  if (autoStartRegistered) return;
+  autoStartRegistered = true;
+  const start = () => {
+    if (!isPlaying) musicPlay();
+    document.removeEventListener('click', start);
+    document.removeEventListener('keydown', start);
+  };
+  document.addEventListener('click', start, { once: false });
+  document.addEventListener('keydown', start, { once: false });
+}

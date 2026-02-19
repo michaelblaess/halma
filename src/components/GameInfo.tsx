@@ -41,18 +41,14 @@ const difficultyLabels: Record<Difficulty, string> = {
 };
 
 function sanitizeName(raw: string): string {
-  // Strip HTML tags
   const stripped = raw.replace(/<[^>]*>/g, '');
-  // Whitelist: letters, digits, umlauts, space, hyphen
   const clean = stripped.replace(/[^a-zA-Z0-9äöüÄÖÜß \-]/g, '');
   return clean.slice(0, 20);
 }
 
-interface HighscoreOverlayProps {
-  onClose: () => void;
-}
+// --- Overlays ---
 
-const HighscoreOverlay: React.FC<HighscoreOverlayProps> = ({ onClose }) => {
+const HighscoreOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [rows, setRows] = useState<string[][] | null>(null);
   const [error, setError] = useState(false);
 
@@ -64,13 +60,9 @@ const HighscoreOverlay: React.FC<HighscoreOverlayProps> = ({ onClose }) => {
       })
       .then((text) => {
         const lines = text.split('\n').filter((l) => l.trim().startsWith('|'));
-        // Skip header row and separator row
         const dataLines = lines.filter((l) => !l.includes('---'));
         const parsed = dataLines.map((line) =>
-          line
-            .split('|')
-            .map((cell) => cell.trim())
-            .filter((cell) => cell.length > 0)
+          line.split('|').map((cell) => cell.trim()).filter((cell) => cell.length > 0)
         );
         setRows(parsed);
       })
@@ -78,27 +70,19 @@ const HighscoreOverlay: React.FC<HighscoreOverlayProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="hs-overlay-backdrop" onClick={onClose}>
-      <div className="hs-overlay" onClick={(e) => e.stopPropagation()}>
-        <button className="hs-overlay-close" onClick={onClose}>✕</button>
+    <div className="overlay-backdrop" onClick={onClose}>
+      <div className="overlay-panel" onClick={(e) => e.stopPropagation()}>
+        <button className="overlay-close" onClick={onClose}>✕</button>
         <h2>Highscore</h2>
-        {error && <p className="hs-overlay-error">HIGHSCORE.md nicht gefunden.</p>}
+        {error && <p className="overlay-error">HIGHSCORE.md nicht gefunden.</p>}
         {rows && rows.length > 0 && (
-          <table className="hs-overlay-table">
+          <table className="overlay-table">
             <thead>
-              <tr>
-                {rows[0].map((cell, i) => (
-                  <th key={i}>{cell}</th>
-                ))}
-              </tr>
+              <tr>{rows[0].map((cell, i) => <th key={i}>{cell}</th>)}</tr>
             </thead>
             <tbody>
               {rows.slice(1).map((row, ri) => (
-                <tr key={ri}>
-                  {row.map((cell, ci) => (
-                    <td key={ci}>{cell}</td>
-                  ))}
-                </tr>
+                <tr key={ri}>{row.map((cell, ci) => <td key={ci}>{cell}</td>)}</tr>
               ))}
             </tbody>
           </table>
@@ -108,6 +92,49 @@ const HighscoreOverlay: React.FC<HighscoreOverlayProps> = ({ onClose }) => {
     </div>
   );
 };
+
+const RulesOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <div className="overlay-backdrop" onClick={onClose}>
+    <div className="overlay-panel" onClick={(e) => e.stopPropagation()}>
+      <button className="overlay-close" onClick={onClose}>✕</button>
+      <h2>Spielregeln</h2>
+      <ul className="rules-list">
+        <li>Klicke auf einen blauen Stein, um ihn auszuwaehlen</li>
+        <li>Klicke nochmal, um die Auswahl aufzuheben</li>
+        <li>Klicke auf ein gruenes Feld, um zu ziehen</li>
+        <li>Spruenge ueber Steine sind erlaubt</li>
+        <li>Bringe alle Steine ins gegenueberliegende Dreieck!</li>
+      </ul>
+    </div>
+  </div>
+);
+
+const AboutOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <div className="overlay-backdrop" onClick={onClose}>
+    <div className="overlay-panel" onClick={(e) => e.stopPropagation()}>
+      <button className="overlay-close" onClick={onClose}>✕</button>
+      <h2>Blitzhalma</h2>
+      <div className="about-content">
+        <p>Ein Sternhalma-Spiel gegen die KI.</p>
+        <p className="about-author">von Michael Blaess</p>
+        <p>
+          <a
+            href="https://github.com/michaelblaess/react-halma"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            github.com/michaelblaess/react-halma
+          </a>
+        </p>
+        <p className="about-music">
+          Hintergrundmusik lizenziert via AudioJungle (Envato Market).
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
+// --- Main Component ---
 
 const GameInfo: React.FC<GameInfoProps> = ({
   state,
@@ -122,13 +149,12 @@ const GameInfo: React.FC<GameInfoProps> = ({
   const { currentPlayer, humanPlayer, winner, isAiThinking, difficulty } = state;
   const isHumanTurn = currentPlayer === humanPlayer;
   const currentHighscores = highscores[difficulty];
-  const [showHighscoreOverlay, setShowHighscoreOverlay] = useState(false);
+  const [showOverlay, setShowOverlay] = useState<'highscore' | 'rules' | 'about' | null>(null);
   const [musicOn, setMusicOn] = useState(musicIsPlaying);
 
   const humanWon = winner === humanPlayer;
   const aiWon = winner !== null && !humanWon;
 
-  // Compute remaining pieces on loss
   let remainingPieces = 0;
   if (aiWon) {
     const goalZone = getGoalZone(humanPlayer);
@@ -145,9 +171,9 @@ const GameInfo: React.FC<GameInfoProps> = ({
   return (
     <div className="game-info">
       <div className="title-row">
-        <h1>Sternhalma</h1>
+        <h1>Blitzhalma</h1>
         <button
-          className={`music-btn ${musicIsPlaying() ? 'music-on' : ''}`}
+          className={`music-btn ${musicOn ? 'music-on' : ''}`}
           onClick={() => { musicToggle(); setMusicOn(musicIsPlaying()); }}
           title={musicOn ? 'Musik aus' : 'Musik an'}
         >
@@ -250,14 +276,22 @@ const GameInfo: React.FC<GameInfoProps> = ({
         Neues Spiel
       </button>
 
-      {/* Highscore Button */}
-      <button className="highscore-btn" onClick={() => setShowHighscoreOverlay(true)}>
-        Highscore
-      </button>
+      {/* Button Row */}
+      <div className="btn-row">
+        <button className="panel-btn" onClick={() => setShowOverlay('highscore')}>
+          Highscore
+        </button>
+        <button className="panel-btn" onClick={() => setShowOverlay('rules')}>
+          Regeln
+        </button>
+        <button className="panel-btn" onClick={() => setShowOverlay('about')}>
+          Info
+        </button>
+      </div>
 
-      {showHighscoreOverlay && (
-        <HighscoreOverlay onClose={() => setShowHighscoreOverlay(false)} />
-      )}
+      {showOverlay === 'highscore' && <HighscoreOverlay onClose={() => setShowOverlay(null)} />}
+      {showOverlay === 'rules' && <RulesOverlay onClose={() => setShowOverlay(null)} />}
+      {showOverlay === 'about' && <AboutOverlay onClose={() => setShowOverlay(null)} />}
 
       {/* Local Highscores */}
       {currentHighscores.length > 0 && (
@@ -279,17 +313,6 @@ const GameInfo: React.FC<GameInfoProps> = ({
           </ol>
         </div>
       )}
-
-      <div className="rules">
-        <h3>Spielregeln</h3>
-        <ul>
-          <li>Klicke auf einen blauen Stein, um ihn auszuwählen</li>
-          <li>Klicke nochmal, um die Auswahl aufzuheben</li>
-          <li>Klicke auf ein grünes Feld, um zu ziehen</li>
-          <li>Sprünge über Steine sind erlaubt</li>
-          <li>Bringe alle Steine ins gegenüberliegende Dreieck!</li>
-        </ul>
-      </div>
     </div>
   );
 };
