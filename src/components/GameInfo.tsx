@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { GameState, Difficulty, Player } from '../model/types';
+import { getGoalZone } from '../model/board';
 import DifficultySelect from './DifficultySelect';
 
 interface HighscoreEntry {
   time: number;
   date: string;
+  name: string;
+  result?: 'win' | 'loss';
+  remaining?: number;
 }
 
 type Highscores = Record<Difficulty, HighscoreEntry[]>;
@@ -15,9 +19,10 @@ interface GameInfoProps {
   onSetDifficulty: (d: Difficulty) => void;
   onSetSide: (p: Player) => void;
   onRestart: () => void;
-  onToggleFastMode: () => void;
   elapsedMs: number;
   highscores: Highscores;
+  playerName: string;
+  onPlayerNameChange: (name: string) => void;
 }
 
 function formatTime(ms: number): string {
@@ -34,23 +39,123 @@ const difficultyLabels: Record<Difficulty, string> = {
   hard: 'Schwer',
 };
 
+function sanitizeName(raw: string): string {
+  // Strip HTML tags
+  const stripped = raw.replace(/<[^>]*>/g, '');
+  // Whitelist: letters, digits, umlauts, space, hyphen
+  const clean = stripped.replace(/[^a-zA-Z0-9äöüÄÖÜß \-]/g, '');
+  return clean.slice(0, 20);
+}
+
+interface HighscoreOverlayProps {
+  onClose: () => void;
+}
+
+const HighscoreOverlay: React.FC<HighscoreOverlayProps> = ({ onClose }) => {
+  const [rows, setRows] = useState<string[][] | null>(null);
+  const [error, setError] = useState(false);
+
+  React.useEffect(() => {
+    fetch('/HIGHSCORE.md')
+      .then((res) => {
+        if (!res.ok) throw new Error('Not found');
+        return res.text();
+      })
+      .then((text) => {
+        const lines = text.split('\n').filter((l) => l.trim().startsWith('|'));
+        // Skip header row and separator row
+        const dataLines = lines.filter((l) => !l.includes('---'));
+        const parsed = dataLines.map((line) =>
+          line
+            .split('|')
+            .map((cell) => cell.trim())
+            .filter((cell) => cell.length > 0)
+        );
+        setRows(parsed);
+      })
+      .catch(() => setError(true));
+  }, []);
+
+  return (
+    <div className="hs-overlay-backdrop" onClick={onClose}>
+      <div className="hs-overlay" onClick={(e) => e.stopPropagation()}>
+        <button className="hs-overlay-close" onClick={onClose}>✕</button>
+        <h2>Highscore</h2>
+        {error && <p className="hs-overlay-error">HIGHSCORE.md nicht gefunden.</p>}
+        {rows && rows.length > 0 && (
+          <table className="hs-overlay-table">
+            <thead>
+              <tr>
+                {rows[0].map((cell, i) => (
+                  <th key={i}>{cell}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.slice(1).map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((cell, ci) => (
+                    <td key={ci}>{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {rows && rows.length === 0 && <p>Keine Eintraege.</p>}
+      </div>
+    </div>
+  );
+};
+
 const GameInfo: React.FC<GameInfoProps> = ({
   state,
-  onEndTurn,
   onSetDifficulty,
   onSetSide,
   onRestart,
-  onToggleFastMode,
   elapsedMs,
   highscores,
+  playerName,
+  onPlayerNameChange,
 }) => {
-  const { currentPlayer, humanPlayer, winner, isAiThinking, jumpPath, difficulty, fastMode } = state;
+  const { currentPlayer, humanPlayer, winner, isAiThinking, difficulty } = state;
   const isHumanTurn = currentPlayer === humanPlayer;
   const currentHighscores = highscores[difficulty];
+  const [showHighscoreOverlay, setShowHighscoreOverlay] = useState(false);
+
+  const humanWon = winner === humanPlayer;
+  const aiWon = winner !== null && !humanWon;
+
+  // Compute remaining pieces on loss
+  let remainingPieces = 0;
+  if (aiWon) {
+    const goalZone = getGoalZone(humanPlayer);
+    for (const pos of goalZone) {
+      if (state.board.get(pos) !== humanPlayer) remainingPieces++;
+    }
+  }
+
+  const snippetTime = formatTime(elapsedMs);
+  const snippetDate = new Date().toISOString().slice(0, 10);
+  const snippetName = playerName || 'Anonym';
+  const snippet = `| ${snippetName} | ${snippetTime} | ${difficultyLabels[difficulty]} | ${snippetDate} |`;
 
   return (
     <div className="game-info">
       <h1>Sternhalma</h1>
+
+      {/* Player Name */}
+      <div className="name-input">
+        <label htmlFor="player-name">Dein Name</label>
+        <input
+          id="player-name"
+          type="text"
+          maxLength={20}
+          value={playerName}
+          onChange={(e) => onPlayerNameChange(sanitizeName(e.target.value))}
+          placeholder="Anonym"
+        />
+      </div>
 
       {/* Timer */}
       <div className="timer-display">
@@ -85,27 +190,20 @@ const GameInfo: React.FC<GameInfoProps> = ({
         </div>
       </div>
 
-      {/* Fast Mode Toggle */}
-      <div className="fast-mode-toggle">
-        <label className="toggle-label">
-          <span>Fast-Mode</span>
-          <button
-            className={`toggle-btn ${fastMode ? 'toggle-on' : 'toggle-off'}`}
-            onClick={onToggleFastMode}
-            title={fastMode ? 'Kettenspruenge deaktiviert' : 'Kettenspruenge aktiviert'}
-          >
-            <span className="toggle-knob" />
-          </button>
-        </label>
-        <span className="toggle-hint">
-          {fastMode ? 'Spruenge enden sofort' : 'Kettenspruenge moeglich'}
-        </span>
-      </div>
-
       <div className="status">
         {winner ? (
-          <div className="winner-banner">
-            {winner === humanPlayer ? 'Du hast gewonnen!' : 'KI hat gewonnen!'}
+          <div className={`winner-banner ${aiWon ? 'loss-banner' : ''}`}>
+            {humanWon ? (
+              'Du hast gewonnen!'
+            ) : (
+              <>
+                KI hat gewonnen!
+                <br />
+                {remainingPieces === 1
+                  ? 'Dir fehlte noch 1 Stein'
+                  : `Dir fehlten noch ${remainingPieces} Steine`}
+              </>
+            )}
           </div>
         ) : isAiThinking ? (
           <div className="thinking">
@@ -123,24 +221,47 @@ const GameInfo: React.FC<GameInfoProps> = ({
         )}
       </div>
 
-      {!fastMode && jumpPath.length > 0 && !winner && (
-        <button className="end-turn-btn" onClick={onEndTurn}>
-          Zug beenden
-        </button>
+      {/* Markdown snippet on human win */}
+      {humanWon && (
+        <div className="win-snippet">
+          <label>Fuer HIGHSCORE.md:</label>
+          <code className="snippet-code" onClick={(e) => {
+            navigator.clipboard.writeText(snippet);
+            const el = e.currentTarget;
+            el.classList.add('copied');
+            setTimeout(() => el.classList.remove('copied'), 1500);
+          }}>{snippet}</code>
+          <span className="snippet-hint">Klick zum Kopieren</span>
+        </div>
       )}
 
       <button className="restart-btn" onClick={onRestart}>
         Neues Spiel
       </button>
 
-      {/* Highscores */}
+      {/* Highscore Button */}
+      <button className="highscore-btn" onClick={() => setShowHighscoreOverlay(true)}>
+        Highscore
+      </button>
+
+      {showHighscoreOverlay && (
+        <HighscoreOverlay onClose={() => setShowHighscoreOverlay(false)} />
+      )}
+
+      {/* Local Highscores */}
       {currentHighscores.length > 0 && (
         <div className="highscores">
-          <h3>Bestzeiten ({difficultyLabels[difficulty]})</h3>
+          <h3>Spielverlauf ({difficultyLabels[difficulty]})</h3>
           <ol className="highscore-list">
             {currentHighscores.map((entry, i) => (
-              <li key={i}>
+              <li key={i} className={entry.result === 'loss' ? 'hs-loss' : ''}>
+                <span className="hs-name">{entry.name || 'Anonym'}</span>
                 <span className="hs-time">{formatTime(entry.time)}</span>
+                <span className="hs-result">
+                  {entry.result === 'loss'
+                    ? `✗ −${entry.remaining ?? '?'}`
+                    : '✓'}
+                </span>
                 <span className="hs-date">{entry.date}</span>
               </li>
             ))}
@@ -152,11 +273,9 @@ const GameInfo: React.FC<GameInfoProps> = ({
         <h3>Spielregeln</h3>
         <ul>
           <li>Klicke auf einen blauen Stein, um ihn auszuwählen</li>
+          <li>Klicke nochmal, um die Auswahl aufzuheben</li>
           <li>Klicke auf ein grünes Feld, um zu ziehen</li>
           <li>Sprünge über Steine sind erlaubt</li>
-          {!fastMode && (
-            <li>Bei Kettensprüngen: weiter springen oder &quot;Zug beenden&quot;</li>
-          )}
           <li>Bringe alle Steine ins gegenüberliegende Dreieck!</li>
         </ul>
       </div>

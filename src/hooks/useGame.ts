@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useRef, useCallback, useState } from 'react';
 import type { GameState, Move, Difficulty, CellState, Player } from '../model/types';
-import { createInitialBoard, serializeBoard } from '../model/board';
+import { createInitialBoard, serializeBoard, getGoalZone } from '../model/board';
 import {
   getValidMoves,
   getContinuingJumps,
@@ -14,6 +14,9 @@ import {
 interface HighscoreEntry {
   time: number;
   date: string;
+  name: string;
+  result: 'win' | 'loss';
+  remaining: number;
 }
 
 type Highscores = Record<Difficulty, HighscoreEntry[]>;
@@ -28,11 +31,23 @@ function loadHighscores(): Highscores {
   return { easy: [], medium: [], hard: [] };
 }
 
-function saveHighscore(difficulty: Difficulty, time: number): Highscores {
+function saveHighscore(
+  difficulty: Difficulty,
+  time: number,
+  name: string,
+  result: 'win' | 'loss',
+  remaining: number,
+): Highscores {
   const scores = loadHighscores();
-  scores[difficulty].push({ time, date: new Date().toISOString().slice(0, 10) });
+  scores[difficulty].push({
+    time,
+    date: new Date().toISOString().slice(0, 10),
+    name,
+    result,
+    remaining,
+  });
   scores[difficulty].sort((a, b) => a.time - b.time);
-  scores[difficulty] = scores[difficulty].slice(0, 5);
+  scores[difficulty] = scores[difficulty].slice(0, 10);
   localStorage.setItem(HIGHSCORE_KEY, JSON.stringify(scores));
   return scores;
 }
@@ -46,8 +61,7 @@ type GameAction =
   | { type: 'AI_MOVE'; move: Move }
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
   | { type: 'SET_SIDE'; humanPlayer: Player }
-  | { type: 'RESTART' }
-  | { type: 'TOGGLE_FAST_MODE' };
+  | { type: 'RESTART' };
 
 function createInitialState(
   difficulty: Difficulty = 'medium',
@@ -110,6 +124,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       // If in a jump chain, can't select a different piece
       if (state.jumpPath.length > 0) return state;
+
+      // Deselect: clicking the same piece again clears selection
+      if (pos === state.selectedPiece) {
+        return { ...state, selectedPiece: null, validMoves: [] };
+      }
 
       const valid = computeValidMovesList(pos, state.board, hp);
       return {
@@ -191,10 +210,6 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return createInitialState(state.difficulty, state.humanPlayer, state.fastMode);
     }
 
-    case 'TOGGLE_FAST_MODE': {
-      return { ...state, fastMode: !state.fastMode };
-    }
-
     default:
       return state;
   }
@@ -202,7 +217,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
 // --- Hook ---
 
-export function useGame() {
+export function useGame(playerName: string) {
   const [state, dispatch] = useReducer(
     gameReducer,
     createInitialState('medium', 2, true)
@@ -226,14 +241,28 @@ export function useGame() {
     }
   }, [state.startTime, state.endTime]);
 
-  // Save highscore on human win
+  // Save highscore on game end (win or loss)
   useEffect(() => {
-    if (state.winner === state.humanPlayer && state.startTime && state.endTime) {
+    if (state.winner && state.startTime && state.endTime) {
       const time = state.endTime - state.startTime;
-      const updated = saveHighscore(state.difficulty, time);
+      const humanWon = state.winner === state.humanPlayer;
+      let remaining = 0;
+      if (!humanWon) {
+        const goalZone = getGoalZone(state.humanPlayer);
+        for (const pos of goalZone) {
+          if (state.board.get(pos) !== state.humanPlayer) remaining++;
+        }
+      }
+      const updated = saveHighscore(
+        state.difficulty,
+        time,
+        playerName || 'Anonym',
+        humanWon ? 'win' : 'loss',
+        remaining,
+      );
       setHighscores(updated);
     }
-  }, [state.winner, state.humanPlayer, state.startTime, state.endTime, state.difficulty]);
+  }, [state.winner, state.humanPlayer, state.startTime, state.endTime, state.difficulty, playerName, state.board]);
 
   // Initialize worker
   useEffect(() => {
@@ -286,10 +315,6 @@ export function useGame() {
     dispatch({ type: 'RESTART' });
   }, []);
 
-  const toggleFastMode = useCallback(() => {
-    dispatch({ type: 'TOGGLE_FAST_MODE' });
-  }, []);
-
   return {
     state,
     selectPiece,
@@ -298,7 +323,6 @@ export function useGame() {
     setDifficulty,
     setSide,
     restart,
-    toggleFastMode,
     elapsedMs,
     highscores,
   };
