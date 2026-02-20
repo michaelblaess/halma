@@ -49,6 +49,10 @@ export interface ThemeTokens {
   validMoveRadius: number;
   clickTargetRadius: number;
 
+  // Piece glow (0 = off)
+  pieceGlowRadius: number;
+  pieceGlowOpacity: number;
+
   // Banners
   winBannerBg: string;
   winBannerColor: string;
@@ -62,7 +66,14 @@ export interface ThemeTokens {
   titleGradient: string;
 }
 
-export type ThemeId = 'standard' | 'holz' | 'highContrast' | 'hell';
+export type ThemeId =
+  | 'standard'
+  | 'kosmos'
+  | 'neon'
+  | 'eleganz'
+  | 'holz'
+  | 'highContrast'
+  | 'hell';
 
 const standard: ThemeTokens = {
   bgPrimary: '#0f0f23',
@@ -109,6 +120,9 @@ const standard: ThemeTokens = {
   validMoveRadius: 12,
   clickTargetRadius: 17,
 
+  pieceGlowRadius: 0,
+  pieceGlowOpacity: 0,
+
   winBannerBg: 'linear-gradient(135deg, #065f46, #064e3b)',
   winBannerColor: '#34d399',
   lossBannerBg: 'linear-gradient(135deg, #7f1d1d, #450a0a)',
@@ -118,6 +132,188 @@ const standard: ThemeTokens = {
 
   titleGradient: 'linear-gradient(135deg, #3b82f6, #ef4444)',
 };
+
+// ---------- Kosmos ----------
+
+const kosmos: ThemeTokens = {
+  bgPrimary: '#030310',
+  bgPanel: '#0a0a22',
+  bgInput: '#06061a',
+  bgButton: '#141435',
+  bgButtonActive: '#1e3a6a',
+  bgOverlay: 'rgba(4, 4, 15, 0.8)',
+
+  textPrimary: '#d8dff0',
+  textSecondary: '#8890b0',
+  textMuted: '#555a80',
+
+  borderDefault: '#2a2a55',
+  borderActive: '#4a9eff',
+
+  accentBlue: '#4a9eff',
+  accentBlueLight: '#70b4ff',
+  accentBlueBg: '#1a2a55',
+  accentRed: '#ff5566',
+  accentGold: '#ffcc44',
+  accentGoldFaded: 'rgba(255, 204, 68, 0.3)',
+  accentGreen: '#44ddaa',
+  accentGreenBg: 'rgba(68, 221, 170, 0.1)',
+  accentLinkColor: '#70b4ff',
+
+  humanColor: '#4a9eff',
+  aiColor: '#ff5566',
+  humanZoneFill: 'rgba(74,158,255,0.12)',
+  aiZoneFill: 'rgba(255,85,102,0.12)',
+  emptyCellFill: 'rgba(100,140,255,0.05)',
+  cellStroke: 'rgba(100,140,255,0.18)',
+  lineStroke: 'rgba(80,120,255,0.1)',
+  validMoveFill: 'rgba(68,221,170,0.4)',
+  validMoveStroke: '#44ddaa',
+  pieceShadow: 'rgba(0,0,0,0.15)',
+  pieceHighlight: 'rgba(255,255,255,0.35)',
+  selectionColor: '#ffcc44',
+
+  pieceRadius: 14,
+  selectionRingRadius: 18,
+  selectionStrokeWidth: 3,
+  cellRadius: 10,
+  validMoveRadius: 12,
+  clickTargetRadius: 17,
+
+  pieceGlowRadius: 20,
+  pieceGlowOpacity: 0.25,
+
+  winBannerBg: 'linear-gradient(135deg, #0a3a3a, #063030)',
+  winBannerColor: '#44ddaa',
+  lossBannerBg: 'linear-gradient(135deg, #4a1525, #300a15)',
+  lossBannerColor: '#ff8899',
+
+  panelShadow: '0 8px 32px rgba(0, 0, 20, 0.6)',
+
+  titleGradient: 'linear-gradient(135deg, #4a9eff, #ff5566)',
+};
+
+// ---------- Neon ----------
+
+const neon: ThemeTokens = {
+  bgPrimary: '#050510',
+  bgPanel: '#0a0a1a',
+  bgInput: '#08081a',
+  bgButton: '#12122a',
+  bgButtonActive: '#0a2a3a',
+  bgOverlay: 'rgba(2, 2, 8, 0.85)',
+
+  textPrimary: '#e0e8f0',
+  textSecondary: '#7888a0',
+  textMuted: '#445060',
+
+  borderDefault: '#1a2a3a',
+  borderActive: '#00d4ff',
+
+  accentBlue: '#00d4ff',
+  accentBlueLight: '#40e0ff',
+  accentBlueBg: '#0a2535',
+  accentRed: '#ff2d78',
+  accentGold: '#ffee00',
+  accentGoldFaded: 'rgba(255, 238, 0, 0.3)',
+  accentGreen: '#00ff88',
+  accentGreenBg: 'rgba(0, 255, 136, 0.1)',
+  accentLinkColor: '#40e0ff',
+
+  humanColor: '#00d4ff',
+  aiColor: '#ff2d78',
+  humanZoneFill: 'rgba(0,212,255,0.1)',
+  aiZoneFill: 'rgba(255,45,120,0.1)',
+  emptyCellFill: 'rgba(0,212,255,0.03)',
+  cellStroke: 'rgba(0,212,255,0.14)',
+  lineStroke: 'rgba(0,212,255,0.07)',
+  validMoveFill: 'rgba(0,255,136,0.35)',
+  validMoveStroke: '#00ff88',
+  pieceShadow: 'rgba(0,0,0,0.15)',
+  pieceHighlight: 'rgba(255,255,255,0.4)',
+  selectionColor: '#ffee00',
+
+  pieceRadius: 14,
+  selectionRingRadius: 18,
+  selectionStrokeWidth: 3,
+  cellRadius: 10,
+  validMoveRadius: 12,
+  clickTargetRadius: 17,
+
+  pieceGlowRadius: 22,
+  pieceGlowOpacity: 0.3,
+
+  winBannerBg: 'linear-gradient(135deg, #003322, #002218)',
+  winBannerColor: '#00ff88',
+  lossBannerBg: 'linear-gradient(135deg, #3a0a20, #250515)',
+  lossBannerColor: '#ff6699',
+
+  panelShadow: '0 8px 32px rgba(0, 0, 10, 0.7)',
+
+  titleGradient: 'linear-gradient(135deg, #00d4ff, #ff2d78)',
+};
+
+// ---------- Eleganz ----------
+
+const eleganz: ThemeTokens = {
+  bgPrimary: '#1a1a1f',
+  bgPanel: '#242430',
+  bgInput: '#1a1a25',
+  bgButton: '#2e2e3a',
+  bgButtonActive: '#3a3530',
+  bgOverlay: 'rgba(10, 10, 14, 0.8)',
+
+  textPrimary: '#e8e4dd',
+  textSecondary: '#a09888',
+  textMuted: '#706858',
+
+  borderDefault: '#3a3830',
+  borderActive: '#c9a84c',
+
+  accentBlue: '#c9a84c',
+  accentBlueLight: '#ddc070',
+  accentBlueBg: '#3a3520',
+  accentRed: '#d94a4a',
+  accentGold: '#c9a84c',
+  accentGoldFaded: 'rgba(201, 168, 76, 0.3)',
+  accentGreen: '#6abf7b',
+  accentGreenBg: 'rgba(106, 191, 123, 0.1)',
+  accentLinkColor: '#ddc070',
+
+  humanColor: '#4a90d9',
+  aiColor: '#d94a4a',
+  humanZoneFill: 'rgba(74,144,217,0.12)',
+  aiZoneFill: 'rgba(217,74,74,0.12)',
+  emptyCellFill: 'rgba(200,180,140,0.04)',
+  cellStroke: 'rgba(200,180,140,0.14)',
+  lineStroke: 'rgba(200,180,140,0.08)',
+  validMoveFill: 'rgba(106,191,123,0.4)',
+  validMoveStroke: '#6abf7b',
+  pieceShadow: 'rgba(0,0,0,0.25)',
+  pieceHighlight: 'rgba(255,255,255,0.4)',
+  selectionColor: '#c9a84c',
+
+  pieceRadius: 14,
+  selectionRingRadius: 18,
+  selectionStrokeWidth: 3,
+  cellRadius: 10,
+  validMoveRadius: 12,
+  clickTargetRadius: 17,
+
+  pieceGlowRadius: 18,
+  pieceGlowOpacity: 0.15,
+
+  winBannerBg: 'linear-gradient(135deg, #1a3a1a, #0f2a0f)',
+  winBannerColor: '#6abf7b',
+  lossBannerBg: 'linear-gradient(135deg, #4a1a1a, #300f0f)',
+  lossBannerColor: '#e8a0a0',
+
+  panelShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+
+  titleGradient: 'linear-gradient(135deg, #4a90d9, #d94a4a)',
+};
+
+// ---------- Holz ----------
 
 const holz: ThemeTokens = {
   bgPrimary: '#2c1e0f',
@@ -164,6 +360,9 @@ const holz: ThemeTokens = {
   validMoveRadius: 12,
   clickTargetRadius: 17,
 
+  pieceGlowRadius: 0,
+  pieceGlowOpacity: 0,
+
   winBannerBg: 'linear-gradient(135deg, #2d4a2d, #1f3a1f)',
   winBannerColor: '#6abf7b',
   lossBannerBg: 'linear-gradient(135deg, #5c2a1a, #3d1a0f)',
@@ -173,6 +372,8 @@ const holz: ThemeTokens = {
 
   titleGradient: 'linear-gradient(135deg, #5b9bd5, #d4644a)',
 };
+
+// ---------- High Contrast ----------
 
 const highContrast: ThemeTokens = {
   bgPrimary: '#000000',
@@ -219,6 +420,9 @@ const highContrast: ThemeTokens = {
   validMoveRadius: 14,
   clickTargetRadius: 19,
 
+  pieceGlowRadius: 0,
+  pieceGlowOpacity: 0,
+
   winBannerBg: 'linear-gradient(135deg, #0a5a0a, #043a04)',
   winBannerColor: '#51cf66',
   lossBannerBg: 'linear-gradient(135deg, #8a1a1a, #5a0a0a)',
@@ -228,6 +432,8 @@ const highContrast: ThemeTokens = {
 
   titleGradient: 'linear-gradient(135deg, #4dabf7, #ff6b6b)',
 };
+
+// ---------- Hell ----------
 
 const hell: ThemeTokens = {
   bgPrimary: '#f1f5f9',
@@ -274,6 +480,9 @@ const hell: ThemeTokens = {
   validMoveRadius: 12,
   clickTargetRadius: 17,
 
+  pieceGlowRadius: 0,
+  pieceGlowOpacity: 0,
+
   winBannerBg: 'linear-gradient(135deg, #dcfce7, #bbf7d0)',
   winBannerColor: '#16a34a',
   lossBannerBg: 'linear-gradient(135deg, #fee2e2, #fecaca)',
@@ -286,15 +495,24 @@ const hell: ThemeTokens = {
 
 export const THEMES: Record<ThemeId, ThemeTokens> = {
   standard,
+  kosmos,
+  neon,
+  eleganz,
   holz,
   highContrast,
   hell,
 };
 
-export const THEME_IDS: ThemeId[] = ['standard', 'holz', 'highContrast', 'hell'];
+export const THEME_IDS: ThemeId[] = [
+  'standard', 'kosmos', 'neon', 'eleganz',
+  'holz', 'highContrast', 'hell',
+];
 
 export const THEME_LABELS: Record<ThemeId, string> = {
   standard: 'Standard',
+  kosmos: 'Kosmos',
+  neon: 'Neon',
+  eleganz: 'Eleganz',
   holz: 'Holz',
   highContrast: 'Kontrast',
   hell: 'Hell',

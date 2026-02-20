@@ -2,22 +2,32 @@ import React from 'react';
 import { useTheme } from '../theme/ThemeContext';
 import { THEME_IDS, THEME_LABELS } from '../theme/themes';
 
+const ROW1 = THEME_IDS.slice(0, 4); // Standard, Kosmos, Neon, Eleganz
+const ROW2 = THEME_IDS.slice(4);    // Holz, Kontrast, Hell
+
 const ThemeSelect: React.FC = () => {
   const { themeId, setThemeId } = useTheme();
+
+  const renderRow = (ids: typeof THEME_IDS) => (
+    <div className="difficulty-buttons">
+      {ids.map((id) => (
+        <button
+          key={id}
+          className={`diff-btn ${themeId === id ? 'active' : ''}`}
+          onClick={() => setThemeId(id)}
+        >
+          {THEME_LABELS[id]}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className="difficulty-select">
       <label>Design:</label>
-      <div className="difficulty-buttons">
-        {THEME_IDS.map((id) => (
-          <button
-            key={id}
-            className={`diff-btn ${themeId === id ? 'active' : ''}`}
-            onClick={() => setThemeId(id)}
-          >
-            {THEME_LABELS[id]}
-          </button>
-        ))}
+      {renderRow(ROW1)}
+      <div style={{ marginTop: 6 }}>
+        {renderRow(ROW2)}
       </div>
     </div>
   );

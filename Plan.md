@@ -21,7 +21,8 @@
 src/
   model/         → Types, Board-Setup, Game-Logik
   hooks/         → useGame (Reducer, Timer, Highscores)
-  components/    → Board, GameInfo, DifficultySelect, Piece
+  components/    → Board, GameInfo, DifficultySelect, Piece, ThemeSelect
+  theme/         → themes.ts (7 Themes + Tokens), ThemeContext.tsx (Provider + Hook)
   ai/            → AI Worker (Minimax)
   audio/         → sounds.ts (SFX), music.ts (Hintergrundmusik)
   assets/        → Statische Assets
@@ -63,15 +64,23 @@ public/
 - Touch-Targets gross genug fuer Finger (min 44px)
 - Board skaliert mit Viewport
 
-### 3. Themes
-- Theme-Switcher im Panel (Dropdown oder Buttons)
-- Themes:
-  - **Standard** (aktuelles Dark Theme)
-  - **Holz** — warme Braun/Beige-Toene, holzartige Textur
-  - **High Contrast** — fuer Sehschwaeche, maximaler Kontrast, groessere Steine
-  - **Hell** — Light Mode
-- Groessere Schrift-Option (unabhaengig vom Theme)
-- Theme-Wahl in localStorage speichern
+### 3. Themes ✓
+- Theme-Switcher im Panel (2 Reihen Buttons, "Design:" Label)
+- 7 Themes implementiert:
+  - **Standard** — Dark Theme (Baseline)
+  - **Kosmos** — Space-Opera, animierter Parallax-Sternen-Himmel (2 Ebenen, CSS-Keyframes)
+  - **Neon** — Cyan-Grid auf dunklem Grund, Glow-Effekt auf Steinen
+  - **Eleganz** — Brushed-Metal-Textur (SVG feTurbulence), warmes Licht
+  - **Holz** — Prozedurales Holzbrett (SVG feTurbulence), dunkle Rillen, Vignette
+  - **Kontrast** — High Contrast, groessere Steine (pieceRadius 16 statt 14)
+  - **Hell** — Light Mode, auto-detect via prefers-color-scheme
+- Architektur: CSS Custom Properties (:root) + React Context (useTheme())
+- Dynamisches `<style id="theme-vars">` Element fuer zuverlaessiges Theme-Switching
+- ThemeProvider in main.tsx, ThemeSelect in GameInfo (Desktop + Drawer)
+- Theme-Wahl in localStorage gespeichert
+- Piece-Glow (Kosmos/Neon/Eleganz): 2 konzentrische Kreise hinter Spielstein
+- SVG-Hintergruende: WoodBackground, KosmosBackground, NeonBackground, EleganzBackground
+- TODO: Themes weiter optimieren
 
 ### 4. Accessibility (a11y)
 - ARIA-Labels auf allen interaktiven Elementen

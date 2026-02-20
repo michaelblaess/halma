@@ -12,6 +12,8 @@ interface PieceProps {
   shadowColor?: string;
   highlightColor?: string;
   selectionColor?: string;
+  glowRadius?: number;
+  glowOpacity?: number;
 }
 
 const Piece: React.FC<PieceProps> = ({
@@ -26,9 +28,18 @@ const Piece: React.FC<PieceProps> = ({
   shadowColor = 'rgba(0,0,0,0.2)',
   highlightColor = 'rgba(255,255,255,0.3)',
   selectionColor = '#fbbf24',
+  glowRadius = 0,
+  glowOpacity = 0,
 }) => {
   return (
     <g onClick={onClick} style={{ cursor: 'pointer' }}>
+      {/* Colored glow (Kosmos/Neon/Eleganz) */}
+      {glowRadius > 0 && (
+        <>
+          <circle cx={cx} cy={cy} r={glowRadius} fill={color} opacity={glowOpacity * 0.5} />
+          <circle cx={cx} cy={cy} r={glowRadius * 0.75} fill={color} opacity={glowOpacity} />
+        </>
+      )}
       {/* Shadow */}
       <circle cx={cx} cy={cy + 2} r={radius} fill={shadowColor} />
       {/* Main piece */}
