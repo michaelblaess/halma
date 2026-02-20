@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import type { GameState, Difficulty, Player } from '../model/types';
 import { getGoalZone } from '../model/board';
 import { musicToggle, musicIsPlaying } from '../audio/music';
+import { useTheme } from '../theme/ThemeContext';
 import DifficultySelect from './DifficultySelect';
+import ThemeSelect from './ThemeSelect';
 
 interface HighscoreEntry {
   time: number;
@@ -141,11 +143,13 @@ const AboutOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => (
 
 // --- Status renderer (shared between compact bar and desktop panel) ---
 
-function StatusDisplay({ state, remainingPieces, humanWon, aiWon }: {
+function StatusDisplay({ state, remainingPieces, humanWon, aiWon, humanColor, aiColor }: {
   state: GameState;
   remainingPieces: number;
   humanWon: boolean;
   aiWon: boolean;
+  humanColor: string;
+  aiColor: string;
 }) {
   const { humanPlayer, currentPlayer, winner, isAiThinking } = state;
   const isHumanTurn = currentPlayer === humanPlayer;
@@ -165,7 +169,7 @@ function StatusDisplay({ state, remainingPieces, humanWon, aiWon }: {
   }
   return (
     <>
-      <span className="turn-dot" style={{ background: isHumanTurn ? '#3b82f6' : '#ef4444' }} />
+      <span className="turn-dot" style={{ background: isHumanTurn ? humanColor : aiColor }} />
       {isHumanTurn ? 'Du bist dran' : 'KI ist dran'}
     </>
   );
@@ -183,6 +187,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
   playerName,
   onPlayerNameChange,
 }) => {
+  const { theme } = useTheme();
   const { humanPlayer, winner, isAiThinking, difficulty } = state;
   const currentHighscores = highscores[difficulty];
   const [showOverlay, setShowOverlay] = useState<'highscore' | 'rules' | 'about' | null>(null);
@@ -218,7 +223,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
           {formatTime(elapsedMs)}
         </span>
         <span className="compact-status">
-          <StatusDisplay state={state} remainingPieces={remainingPieces} humanWon={humanWon} aiWon={aiWon} />
+          <StatusDisplay state={state} remainingPieces={remainingPieces} humanWon={humanWon} aiWon={aiWon} humanColor={theme.humanColor} aiColor={theme.aiColor} />
         </span>
         <button className="compact-btn" onClick={onRestart} title="Neues Spiel">&#9654;</button>
         <button
@@ -277,6 +282,8 @@ const GameInfo: React.FC<GameInfoProps> = ({
               </button>
             </div>
           </div>
+
+          <ThemeSelect />
 
           <div className="btn-row">
             <button className="panel-btn" onClick={() => setShowOverlay('highscore')}>
@@ -367,6 +374,8 @@ const GameInfo: React.FC<GameInfoProps> = ({
           </div>
         </div>
 
+        <ThemeSelect />
+
         <div className="status">
           {!state.started ? (
             <div className="start-hint">
@@ -395,7 +404,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
             <div className="current-turn">
               <span
                 className="turn-dot"
-                style={{ background: state.currentPlayer === humanPlayer ? '#3b82f6' : '#ef4444' }}
+                style={{ background: state.currentPlayer === humanPlayer ? theme.humanColor : theme.aiColor }}
               />
               {state.currentPlayer === humanPlayer ? 'Du bist dran' : 'KI ist dran'}
             </div>

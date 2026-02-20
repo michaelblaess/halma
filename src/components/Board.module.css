@@ -6,9 +6,9 @@
 }
 
 .board {
-  background: #1a1a2e;
+  background: var(--bg-panel);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--panel-shadow);
 }
 
 @media (max-width: 1024px) {
