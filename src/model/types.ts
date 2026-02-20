@@ -15,6 +15,7 @@ export interface GameState {
   difficulty: Difficulty;
   isAiThinking: boolean;
   fastMode: boolean;
+  started: boolean;
   startTime: number | null;
   endTime: number | null;
 }

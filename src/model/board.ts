@@ -102,9 +102,9 @@ export function posFromRowGx(row: number, gx: number): string | undefined {
 }
 
 // Pixel coordinates for SVG rendering
-const SPACING_X = 36;
-const SPACING_Y = SPACING_X * Math.sin(Math.PI / 3); // ~31.18
-const MARGIN = 30;
+const SPACING_X = 44;
+const SPACING_Y = SPACING_X * Math.sin(Math.PI / 3); // ~38.1
+const MARGIN = 36;
 
 export function positionToPixel(row: number, col: number): { x: number; y: number } {
   const gx = getGx(row, col);

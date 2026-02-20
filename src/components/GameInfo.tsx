@@ -233,7 +233,11 @@ const GameInfo: React.FC<GameInfoProps> = ({
       </div>
 
       <div className="status">
-        {winner ? (
+        {!state.started ? (
+          <div className="start-hint">
+            Druecke &laquo;Neues Spiel&raquo; um zu starten
+          </div>
+        ) : winner ? (
           <div className={`winner-banner ${aiWon ? 'loss-banner' : ''}`}>
             {humanWon ? (
               'Du hast gewonnen!'

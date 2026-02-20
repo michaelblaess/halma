@@ -104,7 +104,7 @@ const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
               <circle
                 cx={x}
                 cy={y}
-                r={8}
+                r={10}
                 fill={getCellFill(posId)}
                 stroke="rgba(255,255,255,0.15)"
                 strokeWidth={0.5}
@@ -115,7 +115,7 @@ const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
                 <circle
                   cx={x}
                   cy={y}
-                  r={10}
+                  r={12}
                   fill="rgba(34,197,94,0.4)"
                   stroke="#22c55e"
                   strokeWidth={2}
@@ -129,7 +129,7 @@ const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
                 <circle
                   cx={x}
                   cy={y}
-                  r={14}
+                  r={17}
                   fill="transparent"
                   style={{ cursor: 'pointer' }}
                   onClick={() => onMovePiece(posId)}

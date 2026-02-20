@@ -66,7 +66,8 @@ type GameAction =
 function createInitialState(
   difficulty: Difficulty = 'medium',
   humanPlayer: Player = 2,
-  fastMode: boolean = true
+  fastMode: boolean = true,
+  started: boolean = false,
 ): GameState {
   // Easy + Medium: human starts, Hard: AI starts
   const aiPlayer = opponent(humanPlayer);
@@ -80,9 +81,10 @@ function createInitialState(
     jumpPath: [],
     winner: null,
     difficulty,
-    isAiThinking: firstPlayer !== humanPlayer,
+    isAiThinking: started && firstPlayer !== humanPlayer,
     fastMode,
-    startTime: Date.now(),
+    started,
+    startTime: started ? Date.now() : null,
     endTime: null,
   };
 }
@@ -119,6 +121,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
   switch (action.type) {
     case 'SELECT_PIECE': {
+      if (!state.started) return state;
       if (state.winner || state.isAiThinking) return state;
       if (state.currentPlayer !== hp) return state;
 
@@ -142,6 +145,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'MOVE_PIECE': {
+      if (!state.started) return state;
       if (state.winner || state.isAiThinking) return state;
       if (!state.selectedPiece) return state;
       if (!state.validMoves.includes(action.to)) return state;
@@ -202,15 +206,15 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'SET_DIFFICULTY': {
-      return createInitialState(action.difficulty, state.humanPlayer, state.fastMode);
+      return createInitialState(action.difficulty, state.humanPlayer, state.fastMode, false);
     }
 
     case 'SET_SIDE': {
-      return createInitialState(state.difficulty, action.humanPlayer, state.fastMode);
+      return createInitialState(state.difficulty, action.humanPlayer, state.fastMode, false);
     }
 
     case 'RESTART': {
-      return createInitialState(state.difficulty, state.humanPlayer, state.fastMode);
+      return createInitialState(state.difficulty, state.humanPlayer, state.fastMode, true);
     }
 
     default:
