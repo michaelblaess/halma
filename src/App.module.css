@@ -4,17 +4,54 @@
   align-items: center;
   gap: 32px;
   padding: 24px;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: #0f0f23;
   color: #e2e8f0;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-@media (max-width: 900px) {
+/* Desktop: hide mobile header */
+.mobileHeader {
+  display: none;
+}
+
+/* Tablet + Mobile: vertical, board fills space */
+@media (max-width: 1024px) {
   .app {
     flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+
+  .mobileHeader {
+    display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 12px;
+    justify-content: center;
+    padding: 10px 16px;
+    background: #1a1a2e;
+    flex-shrink: 0;
+    width: 100%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .mobileHeader h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #ef4444);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .mobileHeader {
+    padding: 8px 12px;
+  }
+
+  .mobileHeader h1 {
+    font-size: 1.1rem;
   }
 }

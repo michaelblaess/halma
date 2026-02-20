@@ -97,6 +97,9 @@ function App() {
 
   return (
     <div className={styles.app}>
+      <header className={styles.mobileHeader}>
+        <h1>Blitzhalma</h1>
+      </header>
       <Board state={state} onSelectPiece={handleSelectPiece} onMovePiece={handleMovePiece} />
       <GameInfo
         state={state}

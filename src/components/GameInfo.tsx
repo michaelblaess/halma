@@ -139,6 +139,38 @@ const AboutOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   </div>
 );
 
+// --- Status renderer (shared between compact bar and desktop panel) ---
+
+function StatusDisplay({ state, remainingPieces, humanWon, aiWon }: {
+  state: GameState;
+  remainingPieces: number;
+  humanWon: boolean;
+  aiWon: boolean;
+}) {
+  const { humanPlayer, currentPlayer, winner, isAiThinking } = state;
+  const isHumanTurn = currentPlayer === humanPlayer;
+
+  if (!state.started) {
+    return <span className="start-hint">Druecke &laquo;Neues Spiel&raquo;</span>;
+  }
+  if (winner) {
+    return (
+      <span className={humanWon ? 'status-win' : 'status-loss'}>
+        {humanWon ? 'Gewonnen!' : `Verloren (−${remainingPieces})`}
+      </span>
+    );
+  }
+  if (isAiThinking) {
+    return <><span className="spinner" /> KI denkt...</>;
+  }
+  return (
+    <>
+      <span className="turn-dot" style={{ background: isHumanTurn ? '#3b82f6' : '#ef4444' }} />
+      {isHumanTurn ? 'Du bist dran' : 'KI ist dran'}
+    </>
+  );
+}
+
 // --- Main Component ---
 
 const GameInfo: React.FC<GameInfoProps> = ({
@@ -151,11 +183,11 @@ const GameInfo: React.FC<GameInfoProps> = ({
   playerName,
   onPlayerNameChange,
 }) => {
-  const { currentPlayer, humanPlayer, winner, isAiThinking, difficulty } = state;
-  const isHumanTurn = currentPlayer === humanPlayer;
+  const { humanPlayer, winner, isAiThinking, difficulty } = state;
   const currentHighscores = highscores[difficulty];
   const [showOverlay, setShowOverlay] = useState<'highscore' | 'rules' | 'about' | null>(null);
   const [musicOn, setMusicOn] = useState(musicIsPlaying);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const humanWon = winner === humanPlayer;
   const aiWon = winner !== null && !humanWon;
@@ -173,155 +205,254 @@ const GameInfo: React.FC<GameInfoProps> = ({
   const snippetName = playerName || 'Anonym';
   const snippet = `| ${snippetName} | ${snippetTime} | ${difficultyLabels[difficulty]} | ${snippetDate} |`;
 
+  const handleMusicToggle = () => {
+    musicToggle();
+    setMusicOn(musicIsPlaying());
+  };
+
   return (
     <div className="game-info">
-      <div className="title-row">
-        <h1>Blitzhalma</h1>
+      {/* ===== Compact bar (tablet/mobile only via CSS) ===== */}
+      <div className="compact-bar">
+        <span className={`compact-timer ${winner ? 'timer-stopped' : ''}`}>
+          {formatTime(elapsedMs)}
+        </span>
+        <span className="compact-status">
+          <StatusDisplay state={state} remainingPieces={remainingPieces} humanWon={humanWon} aiWon={aiWon} />
+        </span>
+        <button className="compact-btn" onClick={onRestart} title="Neues Spiel">&#9654;</button>
         <button
-          className={`music-btn ${musicOn ? 'music-on' : ''}`}
-          onClick={() => { musicToggle(); setMusicOn(musicIsPlaying()); }}
+          className={`compact-btn ${musicOn ? 'music-on' : ''}`}
+          onClick={handleMusicToggle}
           title={musicOn ? 'Musik aus' : 'Musik an'}
         >
           {musicOn ? '\u266B' : '\u266A'}
         </button>
+        <button
+          className={`compact-btn ${drawerOpen ? 'drawer-active' : ''}`}
+          onClick={() => setDrawerOpen(!drawerOpen)}
+          title="Einstellungen"
+        >
+          &#9881;
+        </button>
       </div>
 
-      {/* Player Name */}
-      <div className="name-input">
-        <label htmlFor="player-name">Dein Name</label>
-        <input
-          id="player-name"
-          type="text"
-          maxLength={20}
-          value={playerName}
-          onChange={(e) => onPlayerNameChange(sanitizeName(e.target.value))}
-          placeholder="Anonym"
-        />
-      </div>
+      {/* ===== Drawer (tablet/mobile: toggleable, desktop: hidden via CSS) ===== */}
+      <div className={`drawer ${drawerOpen ? 'drawer-open' : ''}`}>
+        <div className="drawer-content">
+          <div className="name-input">
+            <label htmlFor="player-name">Dein Name</label>
+            <input
+              id="player-name"
+              type="text"
+              maxLength={20}
+              value={playerName}
+              onChange={(e) => onPlayerNameChange(sanitizeName(e.target.value))}
+              placeholder="Anonym"
+            />
+          </div>
 
-      {/* Timer */}
-      <div className="timer-display">
-        <span className={`timer-value ${winner ? 'timer-stopped' : ''}`}>
-          {formatTime(elapsedMs)}
-        </span>
-      </div>
-
-      <DifficultySelect
-        difficulty={difficulty}
-        onChange={onSetDifficulty}
-        disabled={isAiThinking}
-      />
-
-      <div className="side-select">
-        <label>Startseite:</label>
-        <div className="difficulty-buttons">
-          <button
-            className={`diff-btn ${humanPlayer === 2 ? 'active' : ''}`}
-            onClick={() => onSetSide(2)}
+          <DifficultySelect
+            difficulty={difficulty}
+            onChange={onSetDifficulty}
             disabled={isAiThinking}
-          >
-            Unten
-          </button>
-          <button
-            className={`diff-btn ${humanPlayer === 1 ? 'active' : ''}`}
-            onClick={() => onSetSide(1)}
-            disabled={isAiThinking}
-          >
-            Oben
-          </button>
+          />
+
+          <div className="side-select">
+            <label>Startseite:</label>
+            <div className="difficulty-buttons">
+              <button
+                className={`diff-btn ${humanPlayer === 2 ? 'active' : ''}`}
+                onClick={() => onSetSide(2)}
+                disabled={isAiThinking}
+              >
+                Unten
+              </button>
+              <button
+                className={`diff-btn ${humanPlayer === 1 ? 'active' : ''}`}
+                onClick={() => onSetSide(1)}
+                disabled={isAiThinking}
+              >
+                Oben
+              </button>
+            </div>
+          </div>
+
+          <div className="btn-row">
+            <button className="panel-btn" onClick={() => setShowOverlay('highscore')}>
+              Highscore
+            </button>
+            <button className="panel-btn" onClick={() => setShowOverlay('rules')}>
+              Regeln
+            </button>
+            <button className="panel-btn" onClick={() => setShowOverlay('about')}>
+              Info
+            </button>
+          </div>
+
+          {currentHighscores.length > 0 && (
+            <div className="highscores">
+              <h3>Spielverlauf ({difficultyLabels[difficulty]})</h3>
+              <ol className="highscore-list">
+                {currentHighscores.map((entry, i) => (
+                  <li key={i} className={entry.result === 'loss' ? 'hs-loss' : ''}>
+                    <span className="hs-name">{entry.name || 'Anonym'}</span>
+                    <span className="hs-time">{formatTime(entry.time)}</span>
+                    <span className="hs-result">
+                      {entry.result === 'loss' ? `✗ −${entry.remaining ?? '?'}` : '✓'}
+                    </span>
+                    <span className="hs-date">{entry.date}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="status">
-        {!state.started ? (
-          <div className="start-hint">
-            Druecke &laquo;Neues Spiel&raquo; um zu starten
+      {/* ===== Desktop panel (hidden on tablet/mobile via CSS) ===== */}
+      <div className="desktop-panel">
+        <div className="title-row">
+          <h1>Blitzhalma</h1>
+          <button
+            className={`music-btn ${musicOn ? 'music-on' : ''}`}
+            onClick={handleMusicToggle}
+            title={musicOn ? 'Musik aus' : 'Musik an'}
+          >
+            {musicOn ? '\u266B' : '\u266A'}
+          </button>
+        </div>
+
+        <div className="name-input">
+          <label htmlFor="player-name-d">Dein Name</label>
+          <input
+            id="player-name-d"
+            type="text"
+            maxLength={20}
+            value={playerName}
+            onChange={(e) => onPlayerNameChange(sanitizeName(e.target.value))}
+            placeholder="Anonym"
+          />
+        </div>
+
+        <div className="timer-display">
+          <span className={`timer-value ${winner ? 'timer-stopped' : ''}`}>
+            {formatTime(elapsedMs)}
+          </span>
+        </div>
+
+        <DifficultySelect
+          difficulty={difficulty}
+          onChange={onSetDifficulty}
+          disabled={isAiThinking}
+        />
+
+        <div className="side-select">
+          <label>Startseite:</label>
+          <div className="difficulty-buttons">
+            <button
+              className={`diff-btn ${humanPlayer === 2 ? 'active' : ''}`}
+              onClick={() => onSetSide(2)}
+              disabled={isAiThinking}
+            >
+              Unten
+            </button>
+            <button
+              className={`diff-btn ${humanPlayer === 1 ? 'active' : ''}`}
+              onClick={() => onSetSide(1)}
+              disabled={isAiThinking}
+            >
+              Oben
+            </button>
           </div>
-        ) : winner ? (
-          <div className={`winner-banner ${aiWon ? 'loss-banner' : ''}`}>
-            {humanWon ? (
-              'Du hast gewonnen!'
-            ) : (
-              <>
-                KI hat gewonnen!
-                <br />
-                {remainingPieces === 1
-                  ? 'Dir fehlte noch 1 Stein'
-                  : `Dir fehlten noch ${remainingPieces} Steine`}
-              </>
-            )}
-          </div>
-        ) : isAiThinking ? (
-          <div className="thinking">
-            <span className="spinner" />
-            KI denkt nach...
-          </div>
-        ) : (
-          <div className="current-turn">
-            <span
-              className="turn-dot"
-              style={{ background: isHumanTurn ? '#3b82f6' : '#ef4444' }}
-            />
-            {isHumanTurn ? 'Du bist dran' : 'KI ist dran'}
+        </div>
+
+        <div className="status">
+          {!state.started ? (
+            <div className="start-hint">
+              Druecke &laquo;Neues Spiel&raquo; um zu starten
+            </div>
+          ) : winner ? (
+            <div className={`winner-banner ${aiWon ? 'loss-banner' : ''}`}>
+              {humanWon ? (
+                'Du hast gewonnen!'
+              ) : (
+                <>
+                  KI hat gewonnen!
+                  <br />
+                  {remainingPieces === 1
+                    ? 'Dir fehlte noch 1 Stein'
+                    : `Dir fehlten noch ${remainingPieces} Steine`}
+                </>
+              )}
+            </div>
+          ) : isAiThinking ? (
+            <div className="thinking">
+              <span className="spinner" />
+              KI denkt nach...
+            </div>
+          ) : (
+            <div className="current-turn">
+              <span
+                className="turn-dot"
+                style={{ background: state.currentPlayer === humanPlayer ? '#3b82f6' : '#ef4444' }}
+              />
+              {state.currentPlayer === humanPlayer ? 'Du bist dran' : 'KI ist dran'}
+            </div>
+          )}
+        </div>
+
+        {humanWon && (
+          <div className="win-snippet">
+            <label>Fuer HIGHSCORE.md:</label>
+            <code className="snippet-code" onClick={(e) => {
+              navigator.clipboard.writeText(snippet);
+              const el = e.currentTarget;
+              el.classList.add('copied');
+              setTimeout(() => el.classList.remove('copied'), 1500);
+            }}>{snippet}</code>
+            <span className="snippet-hint">Klick zum Kopieren</span>
           </div>
         )}
-      </div>
 
-      {/* Markdown snippet on human win */}
-      {humanWon && (
-        <div className="win-snippet">
-          <label>Fuer HIGHSCORE.md:</label>
-          <code className="snippet-code" onClick={(e) => {
-            navigator.clipboard.writeText(snippet);
-            const el = e.currentTarget;
-            el.classList.add('copied');
-            setTimeout(() => el.classList.remove('copied'), 1500);
-          }}>{snippet}</code>
-          <span className="snippet-hint">Klick zum Kopieren</span>
+        <button className="restart-btn" onClick={onRestart}>
+          Neues Spiel
+        </button>
+
+        <div className="btn-row">
+          <button className="panel-btn" onClick={() => setShowOverlay('highscore')}>
+            Highscore
+          </button>
+          <button className="panel-btn" onClick={() => setShowOverlay('rules')}>
+            Regeln
+          </button>
+          <button className="panel-btn" onClick={() => setShowOverlay('about')}>
+            Info
+          </button>
         </div>
-      )}
 
-      <button className="restart-btn" onClick={onRestart}>
-        Neues Spiel
-      </button>
-
-      {/* Button Row */}
-      <div className="btn-row">
-        <button className="panel-btn" onClick={() => setShowOverlay('highscore')}>
-          Highscore
-        </button>
-        <button className="panel-btn" onClick={() => setShowOverlay('rules')}>
-          Regeln
-        </button>
-        <button className="panel-btn" onClick={() => setShowOverlay('about')}>
-          Info
-        </button>
+        {currentHighscores.length > 0 && (
+          <div className="highscores">
+            <h3>Spielverlauf ({difficultyLabels[difficulty]})</h3>
+            <ol className="highscore-list">
+              {currentHighscores.map((entry, i) => (
+                <li key={i} className={entry.result === 'loss' ? 'hs-loss' : ''}>
+                  <span className="hs-name">{entry.name || 'Anonym'}</span>
+                  <span className="hs-time">{formatTime(entry.time)}</span>
+                  <span className="hs-result">
+                    {entry.result === 'loss' ? `✗ −${entry.remaining ?? '?'}` : '✓'}
+                  </span>
+                  <span className="hs-date">{entry.date}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
       </div>
 
       {showOverlay === 'highscore' && <HighscoreOverlay onClose={() => setShowOverlay(null)} />}
       {showOverlay === 'rules' && <RulesOverlay onClose={() => setShowOverlay(null)} />}
       {showOverlay === 'about' && <AboutOverlay onClose={() => setShowOverlay(null)} />}
-
-      {/* Local Highscores */}
-      {currentHighscores.length > 0 && (
-        <div className="highscores">
-          <h3>Spielverlauf ({difficultyLabels[difficulty]})</h3>
-          <ol className="highscore-list">
-            {currentHighscores.map((entry, i) => (
-              <li key={i} className={entry.result === 'loss' ? 'hs-loss' : ''}>
-                <span className="hs-name">{entry.name || 'Anonym'}</span>
-                <span className="hs-time">{formatTime(entry.time)}</span>
-                <span className="hs-result">
-                  {entry.result === 'loss'
-                    ? `✗ −${entry.remaining ?? '?'}`
-                    : '✓'}
-                </span>
-                <span className="hs-date">{entry.date}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
     </div>
   );
 };
