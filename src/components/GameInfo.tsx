@@ -105,6 +105,11 @@ const RulesOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => (
         <li>Spruenge ueber Steine sind erlaubt</li>
         <li>Bringe alle Steine ins gegenueberliegende Dreieck!</li>
       </ul>
+      <h3 className="rules-subheading">Wer faengt an?</h3>
+      <ul className="rules-list">
+        <li><strong>Leicht / Mittel:</strong> Du faengst an</li>
+        <li><strong>Schwer:</strong> Die KI faengt an</li>
+      </ul>
     </div>
   </div>
 );

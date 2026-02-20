@@ -68,16 +68,19 @@ function createInitialState(
   humanPlayer: Player = 2,
   fastMode: boolean = true
 ): GameState {
+  // Easy + Medium: human starts, Hard: AI starts
+  const aiPlayer = opponent(humanPlayer);
+  const firstPlayer = difficulty === 'hard' ? aiPlayer : humanPlayer;
   return {
     board: createInitialBoard(),
-    currentPlayer: 1, // player 1 (top) always moves first
+    currentPlayer: firstPlayer,
     humanPlayer,
     selectedPiece: null,
     validMoves: [],
     jumpPath: [],
     winner: null,
     difficulty,
-    isAiThinking: humanPlayer !== 1, // if human is not player 1, AI goes first
+    isAiThinking: firstPlayer !== humanPlayer,
     fastMode,
     startTime: Date.now(),
     endTime: null,
