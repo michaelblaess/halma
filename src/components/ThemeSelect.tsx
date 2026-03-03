@@ -2,8 +2,11 @@ import React from 'react';
 import { useTheme } from '../theme/ThemeContext';
 import { THEME_IDS, THEME_LABELS } from '../theme/themes';
 
-const ROW1 = THEME_IDS.slice(0, 4); // Standard, Kosmos, Neon, Eleganz
-const ROW2 = THEME_IDS.slice(4);    // Holz, Kontrast, Hell
+// TODO: Kosmos, Neon, Eleganz werden noch überarbeitet — vorerst ausgeblendet
+const HIDDEN_THEMES = new Set(['kosmos', 'neon', 'eleganz'] as const);
+const VISIBLE = THEME_IDS.filter((id) => !HIDDEN_THEMES.has(id));
+const ROW1 = VISIBLE.slice(0, 4); // Standard, Holz, Kontrast, Hell
+const ROW2 = VISIBLE.slice(4);
 
 const ThemeSelect: React.FC = () => {
   const { themeId, setThemeId } = useTheme();

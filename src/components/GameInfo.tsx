@@ -121,7 +121,7 @@ const RulesOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   );
 };
 
-const AboutOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+const AboutOverlay: React.FC<{ onClose: () => void; onShowImpressum: () => void }> = ({ onClose, onShowImpressum }) => {
   const panelRef = useFocusTrap(onClose);
   return (
     <div className="overlay-backdrop" onClick={onClose}>
@@ -143,6 +143,36 @@ const AboutOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <p className="about-music">
             Hintergrundmusik lizenziert via AudioJungle (Envato Market).
           </p>
+          <div className="about-donate">
+            <p>Gefällt dir Blitzhalma? Unterstütze das Projekt:</p>
+            <div className="donate-links">
+              <a href="https://paypal.me/TODO" target="_blank" rel="noopener noreferrer" className="donate-btn donate-paypal">
+                PayPal
+              </a>
+              <a href="https://buymeacoffee.com/TODO" target="_blank" rel="noopener noreferrer" className="donate-btn donate-bmac">
+                Buy Me a Coffee
+              </a>
+            </div>
+          </div>
+          <button className="about-impressum-link" onClick={(e) => { e.stopPropagation(); onShowImpressum(); }}>
+            Impressum
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ImpressumOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const panelRef = useFocusTrap(onClose);
+  return (
+    <div className="overlay-backdrop" onClick={onClose}>
+      <div ref={panelRef} className="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="impressum-title" onClick={(e) => e.stopPropagation()}>
+        <button className="overlay-close" onClick={onClose} aria-label="Schliessen">✕</button>
+        <h2 id="impressum-title">Impressum</h2>
+        <div className="impressum-content">
+          <p>Angaben gemäß § 5 TMG</p>
+          <p><strong>TODO:</strong> Name, Adresse, Kontakt ergänzen.</p>
         </div>
       </div>
     </div>
@@ -198,7 +228,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
   const { theme } = useTheme();
   const { humanPlayer, winner, isAiThinking, difficulty } = state;
   const currentHighscores = highscores[difficulty];
-  const [showOverlay, setShowOverlay] = useState<'highscore' | 'rules' | 'about' | null>(null);
+  const [showOverlay, setShowOverlay] = useState<'highscore' | 'rules' | 'about' | 'impressum' | null>(null);
   const [musicOn, setMusicOn] = useState(musicIsPlaying);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -474,7 +504,8 @@ const GameInfo: React.FC<GameInfoProps> = ({
 
       {showOverlay === 'highscore' && <HighscoreOverlay onClose={() => setShowOverlay(null)} />}
       {showOverlay === 'rules' && <RulesOverlay onClose={() => setShowOverlay(null)} />}
-      {showOverlay === 'about' && <AboutOverlay onClose={() => setShowOverlay(null)} />}
+      {showOverlay === 'about' && <AboutOverlay onClose={() => setShowOverlay(null)} onShowImpressum={() => setShowOverlay('impressum')} />}
+      {showOverlay === 'impressum' && <ImpressumOverlay onClose={() => setShowOverlay(null)} />}
     </div>
   );
 };

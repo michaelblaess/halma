@@ -81,6 +81,7 @@ public/
 - Piece-Glow (Kosmos/Neon/Eleganz): 2 konzentrische Kreise hinter Spielstein
 - SVG-Hintergruende: WoodBackground, KosmosBackground, NeonBackground, EleganzBackground
 - TODO: Themes weiter optimieren
+- **Kosmos, Neon, Eleganz vorerst ausgeblendet** (ThemeSelect.tsx HIDDEN_THEMES) — muessen noch ueberarbeitet werden, bevor sie wieder sichtbar geschaltet werden
 
 ### 4. Accessibility (a11y)
 - ARIA-Labels auf allen interaktiven Elementen
