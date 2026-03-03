@@ -151,7 +151,7 @@ const AboutOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
 // --- Status renderer (shared between compact bar and desktop panel) ---
 
-function StatusDisplay({ state, remainingPieces, humanWon, aiWon, humanColor, aiColor }: {
+function StatusDisplay({ state, remainingPieces, humanWon, aiWon: _aiWon, humanColor, aiColor }: {
   state: GameState;
   remainingPieces: number;
   humanWon: boolean;

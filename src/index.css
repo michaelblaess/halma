@@ -355,19 +355,21 @@ body {
 
 .restart-btn {
   width: 100%;
-  padding: 10px;
-  border: 1px solid var(--text-muted);
+  padding: 12px;
+  border: 1px solid var(--accent-blue);
   border-radius: 8px;
-  background: var(--bg-button);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue-light);
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .restart-btn:hover {
-  border-color: var(--text-muted);
-  color: var(--text-primary);
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #fff;
 }
 
 /* Timer */
