@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import type { GameState, CellState } from '../model/types';
 import {
   ALL_POSITIONS,
   adjacencyMap,
   parsePos,
+  getGx,
   positionToPixel,
   SVG_WIDTH,
   SVG_HEIGHT,
@@ -19,6 +20,24 @@ interface BoardProps {
   state: GameState;
   onSelectPiece: (pos: string) => void;
   onMovePiece: (to: string) => void;
+}
+
+/* ===== Helpers ===== */
+
+function positionLabel(posId: string, type: 'piece' | 'ai' | 'move'): string {
+  const { row, col } = parsePos(posId);
+  const prefix = type === 'piece' ? 'Dein Stein' : type === 'ai' ? 'KI-Stein' : 'Zugziel';
+  return `${prefix}, Reihe ${row + 1}, Spalte ${col + 1}`;
+}
+
+/** Sort positions by row then by gx (grid-x). */
+function sortPositions(positions: string[]): string[] {
+  return [...positions].sort((a, b) => {
+    const pa = parsePos(a);
+    const pb = parsePos(b);
+    if (pa.row !== pb.row) return pa.row - pb.row;
+    return getGx(pa.row, pa.col) - getGx(pb.row, pb.col);
+  });
 }
 
 /* ===== SVG Board Backgrounds ===== */
@@ -145,6 +164,9 @@ function KosmosBackground({ w, h }: { w: number; h: number }) {
           from { transform: translate(0, 0); }
           to   { transform: translate(-${NEAR_TILE}px, -${NEAR_TILE / 2}px); }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .stars-far, .stars-near { animation: none; }
+        }
       `}</style>
 
       {/* Deep space base */}
@@ -236,11 +258,138 @@ function BoardBackground({ id, w, h }: { id: ThemeId; w: number; h: number }) {
 
 const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
   const { theme, themeId } = useTheme();
-  const { board, selectedPiece, validMoves, humanPlayer } = state;
+  const { board, selectedPiece, validMoves, humanPlayer, isAiThinking, winner, started, currentPlayer } = state;
   const validMoveSet = new Set(validMoves);
 
   const humanStartsTop = humanPlayer === 1;
   const isWood = themeId === 'holz';
+  const isHumanTurn = currentPlayer === humanPlayer && !isAiThinking && !winner && started;
+
+  // --- Keyboard navigation state ---
+  const [focusedPos, setFocusedPos] = useState<string | null>(null);
+  const pieceRefs = useRef<Map<string, SVGGElement>>(new Map());
+
+  // Phase A: no piece selected → human pieces are focusable
+  // Phase B: piece selected → valid move targets are focusable
+  const focusablePositions = useMemo(() => {
+    if (!isHumanTurn) return [];
+    if (selectedPiece) {
+      // Phase B: valid empty move targets
+      return sortPositions(validMoves.filter(pos => board.get(pos) === 0));
+    }
+    // Phase A: human pieces
+    return sortPositions(
+      ALL_POSITIONS.filter(pos => board.get(pos) === humanPlayer)
+    );
+  }, [isHumanTurn, selectedPiece, validMoves, board, humanPlayer]);
+
+  const focusableSet = useMemo(() => new Set(focusablePositions), [focusablePositions]);
+
+  // Keep focusedPos in sync: clear if no longer valid
+  useEffect(() => {
+    if (focusedPos && !focusableSet.has(focusedPos)) {
+      setFocusedPos(focusablePositions[0] ?? null);
+    }
+  }, [focusablePositions, focusableSet, focusedPos]);
+
+  // Auto-focus: AI finished → focus first human piece
+  const prevAiThinking = useRef(state.isAiThinking);
+  useEffect(() => {
+    if (prevAiThinking.current && !state.isAiThinking && !state.winner && focusablePositions.length > 0) {
+      const first = focusablePositions[0];
+      setFocusedPos(first);
+      requestAnimationFrame(() => pieceRefs.current.get(first)?.focus());
+    }
+    prevAiThinking.current = state.isAiThinking;
+  }, [state.isAiThinking, state.winner, focusablePositions]);
+
+  // Auto-focus: piece selected → focus first move target
+  const prevSelected = useRef(selectedPiece);
+  useEffect(() => {
+    if (selectedPiece && selectedPiece !== prevSelected.current && focusablePositions.length > 0) {
+      const first = focusablePositions[0];
+      setFocusedPos(first);
+      requestAnimationFrame(() => pieceRefs.current.get(first)?.focus());
+    }
+    prevSelected.current = selectedPiece;
+  }, [selectedPiece, focusablePositions]);
+
+  // Store ref callback
+  const setRef = useCallback((posId: string, el: SVGGElement | null) => {
+    if (el) {
+      pieceRefs.current.set(posId, el);
+    } else {
+      pieceRefs.current.delete(posId);
+    }
+  }, []);
+
+  // Navigate within focusable positions
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, posId: string) => {
+    const idx = focusablePositions.indexOf(posId);
+    if (idx === -1) return;
+
+    let nextIdx: number | null = null;
+
+    switch (e.key) {
+      case 'ArrowRight': {
+        e.preventDefault();
+        nextIdx = idx < focusablePositions.length - 1 ? idx + 1 : 0;
+        break;
+      }
+      case 'ArrowLeft': {
+        e.preventDefault();
+        nextIdx = idx > 0 ? idx - 1 : focusablePositions.length - 1;
+        break;
+      }
+      case 'ArrowDown': {
+        e.preventDefault();
+        const curRow = parsePos(posId).row;
+        // Find next position with a higher row number
+        const next = focusablePositions.find((p, i) => i > idx && parsePos(p).row > curRow)
+          ?? focusablePositions.find(p => parsePos(p).row > curRow);
+        if (next) nextIdx = focusablePositions.indexOf(next);
+        break;
+      }
+      case 'ArrowUp': {
+        e.preventDefault();
+        const curRow2 = parsePos(posId).row;
+        // Find previous position with a lower row number (search backwards)
+        const candidates = focusablePositions.filter((p, i) => i < idx && parsePos(p).row < curRow2);
+        const prev = candidates.length > 0 ? candidates[candidates.length - 1]
+          : [...focusablePositions].reverse().find(p => parsePos(p).row < curRow2);
+        if (prev) nextIdx = focusablePositions.indexOf(prev);
+        break;
+      }
+      case 'Enter':
+      case ' ': {
+        e.preventDefault();
+        if (selectedPiece) {
+          // Phase B: confirm move
+          onMovePiece(posId);
+        } else {
+          // Phase A: select piece
+          onSelectPiece(posId);
+        }
+        return;
+      }
+      case 'Escape': {
+        e.preventDefault();
+        if (selectedPiece) {
+          // Deselect → back to Phase A
+          onSelectPiece(selectedPiece);
+        }
+        return;
+      }
+      default:
+        return;
+    }
+
+    if (nextIdx !== null) {
+      const nextPos = focusablePositions[nextIdx];
+      setFocusedPos(nextPos);
+      pieceRefs.current.get(nextPos)?.focus();
+    }
+  }, [focusablePositions, selectedPiece, onSelectPiece, onMovePiece]);
 
   function getCellFill(posId: string): string {
     if (TRIANGLE_TOP_SET.has(posId)) {
@@ -283,10 +432,16 @@ const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
         width={SVG_WIDTH}
         height={SVG_HEIGHT}
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+        role="group"
+        aria-label="Spielbrett"
+        id="game-board"
       >
-        <BoardBackground id={themeId} w={SVG_WIDTH} h={SVG_HEIGHT} />
+        <g aria-hidden="true">
+          <BoardBackground id={themeId} w={SVG_WIDTH} h={SVG_HEIGHT} />
+        </g>
 
         {/* Connection lines */}
+        <g aria-hidden="true">
         {lines.map((l, i) => (
           <line
             key={i}
@@ -295,6 +450,7 @@ const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
             strokeWidth={isWood ? 1.5 : 1}
           />
         ))}
+        </g>
 
         {/* Cells and pieces */}
         {ALL_POSITIONS.map((posId) => {
@@ -303,9 +459,12 @@ const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
           const cell = board.get(posId) as CellState;
           const isValid = validMoveSet.has(posId);
           const isSelected = selectedPiece === posId;
+          const isEmpty = cell === 0 && !isValid;
+          const isFocusable = focusableSet.has(posId);
+          const isFocused = focusedPos === posId;
 
           return (
-            <g key={posId}>
+            <g key={posId} aria-hidden={isEmpty || undefined}>
               <circle
                 cx={x} cy={y} r={theme.cellRadius}
                 fill={getCellFill(posId)}
@@ -313,43 +472,102 @@ const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
                 strokeWidth={isWood ? 1 : 0.5}
               />
 
+              {/* Valid move target (visual circle + click target) */}
               {isValid && cell === 0 && (
-                <circle
-                  cx={x} cy={y} r={theme.validMoveRadius}
-                  fill={theme.validMoveFill}
-                  stroke={theme.validMoveStroke}
-                  strokeWidth={2}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => onMovePiece(posId)}
-                />
+                <>
+                  <circle
+                    cx={x} cy={y} r={theme.validMoveRadius}
+                    fill={theme.validMoveFill}
+                    stroke={theme.validMoveStroke}
+                    strokeWidth={2}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onMovePiece(posId)}
+                  />
+
+                  <circle
+                    cx={x} cy={y} r={theme.clickTargetRadius}
+                    fill="transparent"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onMovePiece(posId)}
+                  />
+
+                  {/* Keyboard-focusable move target */}
+                  {isFocusable && (
+                    <g
+                      ref={(el) => setRef(posId, el)}
+                      tabIndex={isFocused ? 0 : -1}
+                      role="button"
+                      aria-label={positionLabel(posId, 'move')}
+                      onKeyDown={(e) => handleKeyDown(e, posId)}
+                      onFocus={() => setFocusedPos(posId)}
+                      focusable="false"
+                      style={{ cursor: 'pointer', outline: 'none' }}
+                      onClick={() => onMovePiece(posId)}
+                    >
+                      {/* Invisible hit area for focus */}
+                      <circle cx={x} cy={y} r={theme.clickTargetRadius} fill="transparent" />
+                      {/* Focus ring for move targets */}
+                      {isFocused && (
+                        <circle
+                          cx={x}
+                          cy={y}
+                          r={theme.selectionRingRadius ?? 18}
+                          fill="none"
+                          stroke={theme.selectionColor ?? '#fbbf24'}
+                          strokeWidth={2}
+                          strokeDasharray="4 3"
+                          opacity={0.8}
+                        />
+                      )}
+                    </g>
+                  )}
+                </>
               )}
 
-              {isValid && cell === 0 && (
-                <circle
-                  cx={x} cy={y} r={theme.clickTargetRadius}
-                  fill="transparent"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => onMovePiece(posId)}
-                />
-              )}
-
+              {/* Pieces */}
               {cell !== 0 && (
-                <Piece
-                  cx={x} cy={y}
-                  color={getPieceColor(cell)}
-                  selected={isSelected}
-                  radius={theme.pieceRadius}
-                  selectionRadius={theme.selectionRingRadius}
-                  selectionStrokeWidth={theme.selectionStrokeWidth}
-                  shadowColor={theme.pieceShadow}
-                  highlightColor={theme.pieceHighlight}
-                  selectionColor={theme.selectionColor}
-                  glowRadius={theme.pieceGlowRadius}
-                  glowOpacity={theme.pieceGlowOpacity}
-                  onClick={() => {
-                    if (cell === humanPlayer) onSelectPiece(posId);
-                  }}
-                />
+                cell === humanPlayer && isFocusable ? (
+                  <Piece
+                    ref={(el) => setRef(posId, el)}
+                    cx={x} cy={y}
+                    color={getPieceColor(cell)}
+                    selected={isSelected}
+                    radius={theme.pieceRadius}
+                    selectionRadius={theme.selectionRingRadius}
+                    selectionStrokeWidth={theme.selectionStrokeWidth}
+                    shadowColor={theme.pieceShadow}
+                    highlightColor={theme.pieceHighlight}
+                    selectionColor={theme.selectionColor}
+                    glowRadius={theme.pieceGlowRadius}
+                    glowOpacity={theme.pieceGlowOpacity}
+                    onClick={() => onSelectPiece(posId)}
+                    tabIndex={isFocused ? 0 : -1}
+                    role="button"
+                    aria-label={positionLabel(posId, 'piece')}
+                    aria-pressed={isSelected}
+                    focused={isFocused}
+                    onKeyDown={(e) => handleKeyDown(e, posId)}
+                  />
+                ) : (
+                  <Piece
+                    cx={x} cy={y}
+                    color={getPieceColor(cell)}
+                    selected={isSelected}
+                    radius={theme.pieceRadius}
+                    selectionRadius={theme.selectionRingRadius}
+                    selectionStrokeWidth={theme.selectionStrokeWidth}
+                    shadowColor={theme.pieceShadow}
+                    highlightColor={theme.pieceHighlight}
+                    selectionColor={theme.selectionColor}
+                    glowRadius={theme.pieceGlowRadius}
+                    glowOpacity={theme.pieceGlowOpacity}
+                    onClick={() => {
+                      if (cell === humanPlayer) onSelectPiece(posId);
+                    }}
+                    role={cell !== humanPlayer ? 'img' : undefined}
+                    aria-label={cell !== humanPlayer ? positionLabel(posId, 'ai') : undefined}
+                  />
+                )
               )}
             </g>
           );

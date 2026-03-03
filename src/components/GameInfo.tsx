@@ -3,6 +3,7 @@ import type { GameState, Difficulty, Player } from '../model/types';
 import { getGoalZone } from '../model/board';
 import { musicToggle, musicIsPlaying } from '../audio/music';
 import { useTheme } from '../theme/ThemeContext';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import DifficultySelect from './DifficultySelect';
 import ThemeSelect from './ThemeSelect';
 
@@ -53,6 +54,7 @@ function sanitizeName(raw: string): string {
 const HighscoreOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [rows, setRows] = useState<string[][] | null>(null);
   const [error, setError] = useState(false);
+  const panelRef = useFocusTrap(onClose);
 
   React.useEffect(() => {
     fetch('/HIGHSCORE.md')
@@ -73,9 +75,9 @@ const HighscoreOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   return (
     <div className="overlay-backdrop" onClick={onClose}>
-      <div className="overlay-panel" onClick={(e) => e.stopPropagation()}>
-        <button className="overlay-close" onClick={onClose}>✕</button>
-        <h2>Highscore</h2>
+      <div ref={panelRef} className="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="hs-title" onClick={(e) => e.stopPropagation()}>
+        <button className="overlay-close" onClick={onClose} aria-label="Schliessen">✕</button>
+        <h2 id="hs-title">Highscore</h2>
         {error && <p className="overlay-error">HIGHSCORE.md nicht gefunden.</p>}
         {rows && rows.length > 0 && (
           <table className="overlay-table">
@@ -95,51 +97,57 @@ const HighscoreOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   );
 };
 
-const RulesOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => (
-  <div className="overlay-backdrop" onClick={onClose}>
-    <div className="overlay-panel" onClick={(e) => e.stopPropagation()}>
-      <button className="overlay-close" onClick={onClose}>✕</button>
-      <h2>Spielregeln</h2>
-      <ul className="rules-list">
-        <li>Klicke auf einen blauen Stein, um ihn auszuwaehlen</li>
-        <li>Klicke nochmal, um die Auswahl aufzuheben</li>
-        <li>Klicke auf ein gruenes Feld, um zu ziehen</li>
-        <li>Spruenge ueber Steine sind erlaubt</li>
-        <li>Bringe alle Steine ins gegenueberliegende Dreieck!</li>
-      </ul>
-      <h3 className="rules-subheading">Wer faengt an?</h3>
-      <ul className="rules-list">
-        <li><strong>Leicht / Mittel:</strong> Du faengst an</li>
-        <li><strong>Schwer:</strong> Die KI faengt an</li>
-      </ul>
-    </div>
-  </div>
-);
-
-const AboutOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => (
-  <div className="overlay-backdrop" onClick={onClose}>
-    <div className="overlay-panel" onClick={(e) => e.stopPropagation()}>
-      <button className="overlay-close" onClick={onClose}>✕</button>
-      <h2>Blitzhalma</h2>
-      <div className="about-content">
-        <p>Ein Sternhalma-Spiel gegen die KI.</p>
-        <p className="about-author">von Michael Blaess</p>
-        <p>
-          <a
-            href="https://github.com/michaelblaess/react-halma"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            github.com/michaelblaess/react-halma
-          </a>
-        </p>
-        <p className="about-music">
-          Hintergrundmusik lizenziert via AudioJungle (Envato Market).
-        </p>
+const RulesOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const panelRef = useFocusTrap(onClose);
+  return (
+    <div className="overlay-backdrop" onClick={onClose}>
+      <div ref={panelRef} className="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="rules-title" onClick={(e) => e.stopPropagation()}>
+        <button className="overlay-close" onClick={onClose} aria-label="Schliessen">✕</button>
+        <h2 id="rules-title">Spielregeln</h2>
+        <ul className="rules-list">
+          <li>Klicke auf einen blauen Stein, um ihn auszuwaehlen</li>
+          <li>Klicke nochmal, um die Auswahl aufzuheben</li>
+          <li>Klicke auf ein gruenes Feld, um zu ziehen</li>
+          <li>Spruenge ueber Steine sind erlaubt</li>
+          <li>Bringe alle Steine ins gegenueberliegende Dreieck!</li>
+        </ul>
+        <h3 className="rules-subheading">Wer faengt an?</h3>
+        <ul className="rules-list">
+          <li><strong>Leicht / Mittel:</strong> Du faengst an</li>
+          <li><strong>Schwer:</strong> Die KI faengt an</li>
+        </ul>
       </div>
     </div>
-  </div>
-);
+  );
+};
+
+const AboutOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const panelRef = useFocusTrap(onClose);
+  return (
+    <div className="overlay-backdrop" onClick={onClose}>
+      <div ref={panelRef} className="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="about-title" onClick={(e) => e.stopPropagation()}>
+        <button className="overlay-close" onClick={onClose} aria-label="Schliessen">✕</button>
+        <h2 id="about-title">Blitzhalma</h2>
+        <div className="about-content">
+          <p>Ein Sternhalma-Spiel gegen die KI.</p>
+          <p className="about-author">von Michael Blaess</p>
+          <p>
+            <a
+              href="https://github.com/michaelblaess/react-halma"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              github.com/michaelblaess/react-halma
+            </a>
+          </p>
+          <p className="about-music">
+            Hintergrundmusik lizenziert via AudioJungle (Envato Market).
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // --- Status renderer (shared between compact bar and desktop panel) ---
 
@@ -225,18 +233,20 @@ const GameInfo: React.FC<GameInfoProps> = ({
         <span className="compact-status">
           <StatusDisplay state={state} remainingPieces={remainingPieces} humanWon={humanWon} aiWon={aiWon} humanColor={theme.humanColor} aiColor={theme.aiColor} />
         </span>
-        <button className="compact-btn" onClick={onRestart} title="Neues Spiel">&#9654;</button>
+        <button className="compact-btn" onClick={onRestart} aria-label="Neues Spiel">&#9654;</button>
         <button
           className={`compact-btn ${musicOn ? 'music-on' : ''}`}
           onClick={handleMusicToggle}
-          title={musicOn ? 'Musik aus' : 'Musik an'}
+          aria-label={musicOn ? 'Musik aus' : 'Musik an'}
+          aria-pressed={musicOn}
         >
           {musicOn ? '\u266B' : '\u266A'}
         </button>
         <button
           className={`compact-btn ${drawerOpen ? 'drawer-active' : ''}`}
           onClick={() => setDrawerOpen(!drawerOpen)}
-          title="Einstellungen"
+          aria-label="Einstellungen"
+          aria-expanded={drawerOpen}
         >
           &#9881;
         </button>
@@ -270,6 +280,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
                 className={`diff-btn ${humanPlayer === 2 ? 'active' : ''}`}
                 onClick={() => onSetSide(2)}
                 disabled={isAiThinking}
+                aria-pressed={humanPlayer === 2}
               >
                 Unten
               </button>
@@ -277,6 +288,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
                 className={`diff-btn ${humanPlayer === 1 ? 'active' : ''}`}
                 onClick={() => onSetSide(1)}
                 disabled={isAiThinking}
+                aria-pressed={humanPlayer === 1}
               >
                 Oben
               </button>
@@ -324,7 +336,8 @@ const GameInfo: React.FC<GameInfoProps> = ({
           <button
             className={`music-btn ${musicOn ? 'music-on' : ''}`}
             onClick={handleMusicToggle}
-            title={musicOn ? 'Musik aus' : 'Musik an'}
+            aria-label={musicOn ? 'Musik aus' : 'Musik an'}
+            aria-pressed={musicOn}
           >
             {musicOn ? '\u266B' : '\u266A'}
           </button>

@@ -15,6 +15,7 @@ const ThemeSelect: React.FC = () => {
           key={id}
           className={`diff-btn ${themeId === id ? 'active' : ''}`}
           onClick={() => setThemeId(id)}
+          aria-pressed={themeId === id}
         >
           {THEME_LABELS[id]}
         </button>

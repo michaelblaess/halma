@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useGame } from './hooks/useGame';
 import Board from './components/Board';
 import GameInfo from './components/GameInfo';
@@ -95,8 +95,21 @@ function App() {
     prevWinner.current = state.winner;
   }, [state.winner, state.humanPlayer]);
 
+  const statusText = useMemo(() => {
+    if (!state.started) return '';
+    if (state.winner) {
+      return state.winner === state.humanPlayer ? 'Gewonnen!' : 'Verloren!';
+    }
+    if (state.isAiThinking) return 'KI denkt nach';
+    return state.currentPlayer === state.humanPlayer ? 'Du bist dran' : 'KI ist dran';
+  }, [state.started, state.winner, state.humanPlayer, state.isAiThinking, state.currentPlayer]);
+
   return (
     <div className={styles.app}>
+      <a href="#game-board" className="skip-link">Zum Spielbrett springen</a>
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {statusText}
+      </div>
       <header className={styles.mobileHeader}>
         <h1>Blitzhalma</h1>
       </header>

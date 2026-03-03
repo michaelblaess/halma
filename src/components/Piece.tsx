@@ -14,9 +14,16 @@ interface PieceProps {
   selectionColor?: string;
   glowRadius?: number;
   glowOpacity?: number;
+  // Accessibility props
+  tabIndex?: number;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
+  role?: string;
+  'aria-label'?: string;
+  'aria-pressed'?: boolean;
+  focused?: boolean;
 }
 
-const Piece: React.FC<PieceProps> = ({
+const Piece = React.forwardRef<SVGGElement, PieceProps>(({
   cx,
   cy,
   color,
@@ -30,9 +37,25 @@ const Piece: React.FC<PieceProps> = ({
   selectionColor = '#fbbf24',
   glowRadius = 0,
   glowOpacity = 0,
-}) => {
+  tabIndex,
+  onKeyDown,
+  role,
+  'aria-label': ariaLabel,
+  'aria-pressed': ariaPressed,
+  focused,
+}, ref) => {
   return (
-    <g onClick={onClick} style={{ cursor: 'pointer' }}>
+    <g
+      ref={ref}
+      onClick={onClick}
+      style={{ cursor: 'pointer', outline: 'none' }}
+      tabIndex={tabIndex}
+      onKeyDown={onKeyDown}
+      role={role}
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
+      focusable="false"
+    >
       {/* Colored glow (Kosmos/Neon/Eleganz) */}
       {glowRadius > 0 && (
         <>
@@ -57,8 +80,23 @@ const Piece: React.FC<PieceProps> = ({
           strokeWidth={selectionStrokeWidth}
         />
       )}
+      {/* Keyboard focus ring (dashed, shown when focused but not selected) */}
+      {focused && !selected && (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={selectionRadius}
+          fill="none"
+          stroke={selectionColor}
+          strokeWidth={2}
+          strokeDasharray="4 3"
+          opacity={0.8}
+        />
+      )}
     </g>
   );
-};
+});
+
+Piece.displayName = 'Piece';
 
 export default React.memo(Piece);

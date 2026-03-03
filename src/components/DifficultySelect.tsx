@@ -28,6 +28,7 @@ const DifficultySelect: React.FC<DifficultySelectProps> = ({
             className={`diff-btn ${difficulty === opt.value ? 'active' : ''}`}
             onClick={() => onChange(opt.value)}
             disabled={disabled}
+            aria-pressed={difficulty === opt.value}
           >
             {opt.label}
           </button>
