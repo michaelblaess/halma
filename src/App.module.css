@@ -5,6 +5,7 @@
   gap: 32px;
   padding: 24px;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg-primary);
   color: var(--text-primary);

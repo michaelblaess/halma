@@ -13,6 +13,7 @@ import {
   soundRestart,
 } from './audio/sounds';
 import { musicAutoStart } from './audio/music';
+import { useHaptics } from './hooks/useHaptics';
 
 const PLAYER_NAME_KEY = 'halma-player-name';
 
@@ -46,6 +47,11 @@ function App() {
     highscores,
   } = useGame(playerName);
 
+  const {
+    hapticSelect, hapticDeselect, hapticMove, hapticAiMove,
+    hapticWin, hapticLoss, hapticRestart,
+  } = useHaptics();
+
   // Auto-start music on first user interaction
   useEffect(() => { musicAutoStart(); }, []);
 
@@ -55,21 +61,25 @@ function App() {
     // Detect deselect: clicking the already-selected piece
     if (state.selectedPiece === pos && state.jumpPath.length === 0) {
       soundDeselect();
+      hapticDeselect();
     } else if (state.board.get(pos) === state.humanPlayer && !state.selectedPiece || state.selectedPiece !== pos) {
       soundSelect();
+      hapticSelect();
     }
     selectPiece(pos);
-  }, [selectPiece, state.selectedPiece, state.jumpPath, state.board, state.humanPlayer]);
+  }, [selectPiece, state.selectedPiece, state.jumpPath, state.board, state.humanPlayer, hapticSelect, hapticDeselect]);
 
   const handleMovePiece = useCallback((to: string) => {
     soundMove();
+    hapticMove();
     movePiece(to);
-  }, [movePiece]);
+  }, [movePiece, hapticMove]);
 
   const handleRestart = useCallback(() => {
     soundRestart();
+    hapticRestart();
     restart();
-  }, [restart]);
+  }, [restart, hapticRestart]);
 
   // --- Sound effects on state changes ---
 
@@ -78,9 +88,10 @@ function App() {
   useEffect(() => {
     if (prevAiThinking.current && !state.isAiThinking && !state.winner) {
       soundAiMove();
+      hapticAiMove();
     }
     prevAiThinking.current = state.isAiThinking;
-  }, [state.isAiThinking, state.winner]);
+  }, [state.isAiThinking, state.winner, hapticAiMove]);
 
   // Win or loss
   const prevWinner = useRef(state.winner);
@@ -88,12 +99,14 @@ function App() {
     if (!prevWinner.current && state.winner) {
       if (state.winner === state.humanPlayer) {
         soundWin();
+        hapticWin();
       } else {
         soundLoss();
+        hapticLoss();
       }
     }
     prevWinner.current = state.winner;
-  }, [state.winner, state.humanPlayer]);
+  }, [state.winner, state.humanPlayer, hapticWin, hapticLoss]);
 
   const statusText = useMemo(() => {
     if (!state.started) return '';
