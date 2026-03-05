@@ -49,10 +49,10 @@
 
 @media (max-width: 640px) {
   .mobileHeader {
-    padding: 8px 12px;
+    padding: 4px 12px;
   }
 
   .mobileHeader h1 {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 }

@@ -27,3 +27,13 @@
     border-radius: 8px;
   }
 }
+
+@media (max-width: 640px) {
+  .boardContainer {
+    padding: 0;
+  }
+
+  .board {
+    border-radius: 0;
+  }
+}
