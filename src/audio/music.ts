@@ -1,10 +1,11 @@
 // Background music player — shuffled playlist, loops forever
 
 // Hashed filenames — Mapping siehe scripts/decrypt-music.sh
+const BASE = import.meta.env.BASE_URL;
 const TRACKS = [
-  '/music/1e6b41f0261e.mp3',
-  '/music/9685818f508c.mp3',
-  '/music/a07b560519d9.mp3',
+  `${BASE}music/1e6b41f0261e.mp3`,
+  `${BASE}music/9685818f508c.mp3`,
+  `${BASE}music/a07b560519d9.mp3`,
 ];
 
 let audio: HTMLAudioElement | null = null;

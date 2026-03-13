@@ -57,7 +57,7 @@ const HighscoreOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const panelRef = useFocusTrap(onClose);
 
   React.useEffect(() => {
-    fetch('/HIGHSCORE.md')
+    fetch(`${import.meta.env.BASE_URL}HIGHSCORE.md`)
       .then((res) => {
         if (!res.ok) throw new Error('Not found');
         return res.text();
