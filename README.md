@@ -1,73 +1,133 @@
-# React + TypeScript + Vite
+# Halma — Sternhalma gegen die KI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ein Sternhalma-Brettspiel (Chinese Checkers) gegen die KI, direkt im Browser spielbar.
+Drei Schwierigkeitsstufen, sieben Themes, Hintergrundmusik, Highscores und vollstaendig offline-faehig als PWA.
 
-Currently, two official plugins are available:
+> **[English version below](#halma--chinese-checkers-vs-ai)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **KI-Gegner** — Minimax-Algorithmus in drei Stufen (Leicht / Mittel / Schwer), laeuft im Web Worker
+- **7 Themes** — Standard, Kosmos, Neon, Eleganz, Holz, High-Contrast, Hell (auto-detect via `prefers-color-scheme`)
+- **Sound & Musik** — Generierte SFX via Web Audio API, lizenzierte Hintergrundmusik mit Shuffle-Playlist
+- **PWA & Offline** — Installierbar als App, vollstaendig offline spielbar dank Service Worker
+- **Speed-Timer** — Zeitmessung mit Zehntel-Sekunden, lokale Highscores pro Schwierigkeitsstufe
+- **Barrierefreiheit** — ARIA-Labels, Keyboard-Navigation, Focus-Styles, Screen-Reader-Support, `prefers-reduced-motion`
+- **Seitenwahl** — Oben oder Unten starten
+- **Spielername** — Frei waehlbar, wird lokal gespeichert
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+| Technologie | Verwendung |
+|---|---|
+| React 19 | UI-Rendering |
+| TypeScript | Typsicherheit |
+| Vite 7 | Build-Tool & Dev-Server |
+| CSS Modules + CSS Custom Properties | Styling & Theming |
+| Web Workers | KI-Berechnung (non-blocking) |
+| Web Audio API | Sound-Effekte |
+| vite-plugin-pwa | Service Worker & Manifest |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Entwicklung
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Abhaengigkeiten installieren
+npm install
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Dev-Server starten
+npm run dev
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Produktions-Build
+npm run build
+
+# Build-Vorschau
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Projektstruktur
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+  model/         Typen, Board-Setup, Spiellogik
+  hooks/         useGame (Reducer, Timer, Highscores)
+  components/    Board, GameInfo, DifficultySelect, Piece, ThemeSelect
+  theme/         themes.ts (7 Themes + Tokens), ThemeContext.tsx
+  ai/            AI Worker (Minimax-Algorithmus)
+  audio/         sounds.ts (SFX), music.ts (Hintergrundmusik)
+docs/            GitHub Pages Landing Page
+public/
+  music/         Lizenzierte MP3-Tracks
+  HIGHSCORE.md   Highscore-Tabelle
+```
+
+## Disclaimer
+
+Halma ist ein klassisches Brettspiel, erfunden 1883 von George Howard Monks.
+Die Sternhalma-Variante (auch bekannt als "Chinese Checkers") entstand 1892.
+Diese Webseite ist ein nicht-kommerzielles Hobby-Projekt und steht in keiner
+Verbindung zu kommerziellen Halma-Produkten oder deren Herstellern.
+
+## Lizenz
+
+MIT
+
+## Musik-Lizenzen
+
+Hintergrundmusik lizenziert via AudioJungle (Envato Market) — Music Standard License.
+
+---
+
+# Halma — Chinese Checkers vs AI
+
+A Chinese Checkers (star halma) board game against AI, playable directly in the browser.
+Three difficulty levels, seven themes, background music, highscores, and fully offline-capable as a PWA.
+
+## Features
+
+- **AI Opponent** — Minimax algorithm with three difficulty levels (Easy / Medium / Hard), runs in a Web Worker
+- **7 Themes** — Standard, Cosmos, Neon, Elegance, Wood, High-Contrast, Light (auto-detect via `prefers-color-scheme`)
+- **Sound & Music** — Generated SFX via Web Audio API, licensed background music with shuffle playlist
+- **PWA & Offline** — Installable as an app, fully playable offline thanks to Service Worker
+- **Speed Timer** — Time tracking with tenths of seconds, local highscores per difficulty level
+- **Accessibility** — ARIA labels, keyboard navigation, focus styles, screen reader support, `prefers-reduced-motion`
+- **Side Selection** — Start from top or bottom
+- **Player Name** — Customizable, stored locally
+
+## Tech Stack
+
+| Technology | Usage |
+|---|---|
+| React 19 | UI rendering |
+| TypeScript | Type safety |
+| Vite 7 | Build tool & dev server |
+| CSS Modules + CSS Custom Properties | Styling & theming |
+| Web Workers | AI computation (non-blocking) |
+| Web Audio API | Sound effects |
+| vite-plugin-pwa | Service worker & manifest |
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Production build
+npm run build
+
+# Preview build
+npm run preview
+```
+
+## Disclaimer
+
+Halma is a classic board game invented in 1883 by George Howard Monks.
+The star halma variant (also known as "Chinese Checkers") was created in 1892.
+This website is a non-commercial hobby project and is not affiliated with
+any commercial Halma products or their manufacturers.
+
+## License
+
+MIT
