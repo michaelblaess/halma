@@ -256,8 +256,8 @@ export function useGame(playerName: string) {
       let remaining = 0;
       if (!humanWon) {
         const goalZone = getGoalZone(state.humanPlayer);
-        for (const pos of goalZone) {
-          if (state.board.get(pos) !== state.humanPlayer) remaining++;
+        for (const [pos, cell] of state.board) {
+          if (cell === state.humanPlayer && !goalZone.has(pos)) remaining++;
         }
       }
       const updated = saveHighscore(

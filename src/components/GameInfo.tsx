@@ -240,8 +240,8 @@ const GameInfo: React.FC<GameInfoProps> = ({
   let remainingPieces = 0;
   if (aiWon) {
     const goalZone = getGoalZone(humanPlayer);
-    for (const pos of goalZone) {
-      if (state.board.get(pos) !== humanPlayer) remainingPieces++;
+    for (const [pos, cell] of state.board) {
+      if (cell === humanPlayer && !goalZone.has(pos)) remainingPieces++;
     }
   }
 
