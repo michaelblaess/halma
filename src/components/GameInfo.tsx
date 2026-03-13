@@ -148,17 +148,6 @@ const AboutOverlay: React.FC<{ onClose: () => void; onShowImpressum: () => void 
             nicht-kommerzielles Hobby-Projekt und steht in keiner Verbindung zu
             kommerziellen Halma-Produkten oder deren Herstellern.
           </p>
-          <div className="about-donate">
-            <p>Gefällt dir Halma? Unterstütze das Projekt:</p>
-            <div className="donate-links">
-              <a href="https://paypal.me/TODO" target="_blank" rel="noopener noreferrer" className="donate-btn donate-paypal">
-                PayPal
-              </a>
-              <a href="https://buymeacoffee.com/TODO" target="_blank" rel="noopener noreferrer" className="donate-btn donate-bmac">
-                Buy Me a Coffee
-              </a>
-            </div>
-          </div>
           <button className="about-impressum-link" onClick={(e) => { e.stopPropagation(); onShowImpressum(); }}>
             Impressum
           </button>
