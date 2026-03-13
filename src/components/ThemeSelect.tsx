@@ -12,7 +12,7 @@ const ThemeSelect: React.FC = () => {
   const { themeId, setThemeId } = useTheme();
 
   const renderRow = (ids: typeof THEME_IDS) => (
-    <div className="difficulty-buttons">
+    <div className="difficulty-buttons theme-buttons">
       {ids.map((id) => (
         <button
           key={id}
