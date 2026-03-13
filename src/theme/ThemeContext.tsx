@@ -15,7 +15,7 @@ function detectDefaultTheme(): ThemeId {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored && stored in THEMES) return stored as ThemeId;
   if (window.matchMedia('(prefers-color-scheme: light)').matches) return 'hell';
-  return 'standard';
+  return 'holz';
 }
 
 /**
