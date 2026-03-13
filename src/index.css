@@ -141,11 +141,7 @@ body {
 
 .diff-btn {
   flex: 1;
-  min-width: 0;
-  padding: 8px 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 8px 12px;
   border: 1px solid var(--border-default);
   border-radius: 8px;
   background: var(--bg-input);
@@ -167,10 +163,6 @@ body {
   font-weight: 600;
 }
 
-.theme-buttons .diff-btn {
-  font-size: 0.78rem;
-  padding: 8px 6px;
-}
 
 .diff-btn:disabled {
   opacity: 0.5;
