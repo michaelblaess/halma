@@ -56,9 +56,16 @@ src/
   audio/         sounds.ts (SFX), music.ts (Hintergrundmusik)
 docs/            GitHub Pages Landing Page
 public/
-  music/         Lizenzierte MP3-Tracks
+  music/         Lizenzierte MP3-Tracks (nicht im Repo, siehe public/music/README.md)
   HIGHSCORE.md   Highscore-Tabelle
 ```
+
+## Musik
+
+Die Hintergrundmusik ist **nicht im Repository enthalten**, da die Tracks ueber
+kommerzielle Lizenzen (AudioJungle / Envato Market) bezogen wurden.
+Das Spiel funktioniert auch ohne Musik — Details und Dateinamen stehen in
+[`public/music/README.md`](public/music/README.md).
 
 ## Disclaimer
 
@@ -69,11 +76,7 @@ Verbindung zu kommerziellen Halma-Produkten oder deren Herstellern.
 
 ## Lizenz
 
-MIT
-
-## Musik-Lizenzen
-
-Hintergrundmusik lizenziert via AudioJungle (Envato Market) — Music Standard License.
+Apache License 2.0 — siehe [LICENSE](LICENSE).
 
 ---
 
@@ -121,6 +124,12 @@ npm run build
 npm run preview
 ```
 
+## Music
+
+Background music is **not included in the repository** as the tracks are
+commercially licensed (AudioJungle / Envato Market).
+The game works fine without music — see [`public/music/README.md`](public/music/README.md) for details.
+
 ## Disclaimer
 
 Halma is a classic board game invented in 1883 by George Howard Monks.
@@ -130,4 +139,4 @@ any commercial Halma products or their manufacturers.
 
 ## License
 
-MIT
+Apache License 2.0 — see [LICENSE](LICENSE).

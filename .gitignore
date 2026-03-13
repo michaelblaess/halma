@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Lizenzierte Musik (nicht im Repo, siehe public/music/README.md)
+public/music/*.mp3
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
