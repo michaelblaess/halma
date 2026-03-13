@@ -42,7 +42,7 @@ function createScreenshotSvg(width, height) {
   <rect width="${width}" height="${height}" fill="url(#bg)"/>
   <polygon points="${points.join(' ')}" fill="url(#starGrad)" opacity="0.9"/>
   <polygon points="${points.join(' ')}" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-  <text x="${cx}" y="${titleY}" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="${titleSize}" fill="url(#titleGrad)">Blitzhalma</text>
+  <text x="${cx}" y="${titleY}" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="${titleSize}" fill="url(#titleGrad)">Halma</text>
   <text x="${cx}" y="${taglineY}" text-anchor="middle" font-family="sans-serif" font-size="${taglineSize}" fill="rgba(255,255,255,0.6)">Sternhalma gegen die KI</text>
 </svg>`;
 }

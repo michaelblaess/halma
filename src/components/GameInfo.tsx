@@ -127,24 +127,29 @@ const AboutOverlay: React.FC<{ onClose: () => void; onShowImpressum: () => void 
     <div className="overlay-backdrop" onClick={onClose}>
       <div ref={panelRef} className="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="about-title" onClick={(e) => e.stopPropagation()}>
         <button className="overlay-close" onClick={onClose} aria-label="Schliessen">✕</button>
-        <h2 id="about-title">Blitzhalma</h2>
+        <h2 id="about-title">Halma</h2>
         <div className="about-content">
           <p>Ein Sternhalma-Spiel gegen die KI.</p>
           <p className="about-author">von Michael Blaess</p>
           <p>
             <a
-              href="https://github.com/michaelblaess/react-halma"
+              href="https://github.com/michaelblaess/halma"
               target="_blank"
               rel="noopener noreferrer"
             >
-              github.com/michaelblaess/react-halma
+              github.com/michaelblaess/halma
             </a>
           </p>
           <p className="about-music">
             Hintergrundmusik lizenziert via AudioJungle (Envato Market).
           </p>
+          <p className="about-disclaimer">
+            Halma ist ein klassisches Brettspiel (1883). Diese Webseite ist ein
+            nicht-kommerzielles Hobby-Projekt und steht in keiner Verbindung zu
+            kommerziellen Halma-Produkten oder deren Herstellern.
+          </p>
           <div className="about-donate">
-            <p>Gefällt dir Blitzhalma? Unterstütze das Projekt:</p>
+            <p>Gefällt dir Halma? Unterstütze das Projekt:</p>
             <div className="donate-links">
               <a href="https://paypal.me/TODO" target="_blank" rel="noopener noreferrer" className="donate-btn donate-paypal">
                 PayPal
@@ -362,7 +367,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
       {/* ===== Desktop panel (hidden on tablet/mobile via CSS) ===== */}
       <div className="desktop-panel">
         <div className="title-row">
-          <h1>Blitzhalma</h1>
+          <h1>Halma</h1>
           <button
             className={`music-btn ${musicOn ? 'music-on' : ''}`}
             onClick={handleMusicToggle}

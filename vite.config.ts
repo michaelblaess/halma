@@ -11,8 +11,8 @@ export default defineConfig({
       includeAssets: ['icon.svg', 'music/*.mp3', 'HIGHSCORE.md', 'og-image.png'],
       manifest: {
         id: '/',
-        name: 'Blitzhalma',
-        short_name: 'Blitzhalma',
+        name: 'Halma',
+        short_name: 'Halma',
         description: 'Sternhalma gegen die KI — schnell, taktisch, offline spielbar.',
         theme_color: '#0f0f23',
         background_color: '#0f0f23',
@@ -27,8 +27,8 @@ export default defineConfig({
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
         screenshots: [
-          { src: 'screenshots/screenshot-wide.png', sizes: '1280x720', type: 'image/png', form_factor: 'wide', label: 'Blitzhalma — Sternhalma gegen die KI' },
-          { src: 'screenshots/screenshot-mobile.png', sizes: '390x844', type: 'image/png', label: 'Blitzhalma auf dem Smartphone' },
+          { src: 'screenshots/screenshot-wide.png', sizes: '1280x720', type: 'image/png', form_factor: 'wide', label: 'Halma — Sternhalma gegen die KI' },
+          { src: 'screenshots/screenshot-mobile.png', sizes: '390x844', type: 'image/png', label: 'Halma auf dem Smartphone' },
         ],
       },
       workbox: {

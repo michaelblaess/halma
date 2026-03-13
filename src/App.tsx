@@ -124,7 +124,7 @@ function App() {
         {statusText}
       </div>
       <header className={styles.mobileHeader}>
-        <h1>Blitzhalma</h1>
+        <h1>Halma</h1>
       </header>
       <Board state={state} onSelectPiece={handleSelectPiece} onMovePiece={handleMovePiece} />
       <GameInfo

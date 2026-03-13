@@ -1,11 +1,10 @@
-# Blitzhalma — Projektplan
+# Halma — Projektplan
 
-## Name & Domain
+## Name & Hosting
 
-- **Name**: Blitzhalma
-- **Domains**: blitzhalma.de (evtl. blitz-halma.de)
-- **Hosting**: NetCup (React Static Build)
-- **Repo**: github.com/michaelblaess/react-halma
+- **Name**: Halma (ehemals Blitzhalma)
+- **Hosting**: GitHub Pages (michaelblaess.github.io/halma)
+- **Repo**: github.com/michaelblaess/halma
 
 ## Tech-Stack
 
@@ -96,7 +95,7 @@ public/
 
 ### 5. SEO
 - Meta-Tags: title, description, og:image, og:title, og:description
-- Canonical URL (blitzhalma.de)
+- Canonical URL (michaelblaess.github.io/halma)
 - Strukturierte Daten (JSON-LD: WebApplication / Game)
 - Favicon + Apple Touch Icons
 - robots.txt + sitemap.xml
@@ -110,7 +109,7 @@ public/
   - **Stripe Payment Links** (professioneller, kein Backend noetig)
   - **Ko-fi** (Alternative zu Buy Me a Coffee)
 - Empfehlung: PayPal Donate Button + Buy Me a Coffee Link
-- Rechtliches: Impressum auf blitzhalma.de (Pflicht fuer .de)
+- Rechtliches: Impressum (Pflicht bei deutscher Sprache)
 
 ### 7. PWA / Mobile App
 - manifest.json + Service Worker + Icons
@@ -120,19 +119,17 @@ public/
 
 ---
 
-## Hosting (NetCup)
+## Hosting (GitHub Pages)
 
 - React Static Build (`npm run build` → `dist/`)
-- Upload via FTP/SFTP oder Git Deploy
-- SSL-Zertifikat (Let's Encrypt) fuer blitzhalma.de
-- `dist/` als Document Root
-- SPA-Redirect: alle Routen auf index.html (falls noetig)
+- Deploy via GitHub Actions
+- URL: michaelblaess.github.io/halma
 
 ## Musik-Lizenzen
 
 Alle Tracks: **Envato AudioJungle — Music Standard License**
 - Erlaubt Nutzung in Web-Games (explizit gelistet)
-- 1 Lizenz pro Track, 1 Endprodukt (Blitzhalma)
+- 1 Lizenz pro Track, 1 Endprodukt (Halma)
 - Bis 10.000 Kopien
 - Lizenzdateien aufbewahren (nicht im Repo)
 

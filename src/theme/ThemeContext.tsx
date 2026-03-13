@@ -9,7 +9,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = 'blitzhalma-theme';
+const STORAGE_KEY = 'halma-theme';
 
 function detectDefaultTheme(): ThemeId {
   const stored = localStorage.getItem(STORAGE_KEY);

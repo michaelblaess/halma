@@ -490,6 +490,13 @@ body {
   border-top: 1px solid var(--border-default);
   padding-top: 12px;
 }
+.about-disclaimer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+  border-top: 1px solid var(--border-default);
+  padding-top: 12px;
+}
 
 /* Donate Section */
 .about-donate {
