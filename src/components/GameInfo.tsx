@@ -176,8 +176,16 @@ const ImpressumOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         <button className="overlay-close" onClick={onClose} aria-label="Schliessen">✕</button>
         <h2 id="impressum-title">Impressum</h2>
         <div className="impressum-content">
-          <p>Angaben gemäß § 5 TMG</p>
-          <p><strong>TODO:</strong> Name, Adresse, Kontakt ergänzen.</p>
+          <h3>Angaben gemäß § 5 TMG</h3>
+          <p>Michael Blaess<br />Kurze Str. 2<br />15345 Rehfelde<br />Deutschland</p>
+          <h3>Kontakt</h3>
+          <p>E-Mail: <a href="mailto:mail@michaelblaess.de">mail@michaelblaess.de</a></p>
+          <h3>Umsatzsteuer-ID</h3>
+          <p>Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: DE297191527</p>
+          <h3>Haftung für Links</h3>
+          <p>Dieses Angebot enthält Links zu externen Webseiten, auf deren Inhalte ich keinen Einfluss habe. Für die Inhalte der verlinkten Seiten ist der jeweilige Anbieter verantwortlich.</p>
+          <h3>Streitbeilegung</h3>
+          <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
         </div>
       </div>
     </div>
