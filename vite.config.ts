@@ -4,13 +4,14 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/halma/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'music/*.mp3', 'HIGHSCORE.md', 'og-image.png'],
       manifest: {
-        id: '/',
+        id: '/halma/',
         name: 'Halma',
         short_name: 'Halma',
         description: 'Sternhalma gegen die KI — schnell, taktisch, offline spielbar.',
@@ -19,8 +20,8 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'any',
         lang: 'de',
-        start_url: '/',
-        scope: '/',
+        start_url: '/halma/',
+        scope: '/halma/',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },

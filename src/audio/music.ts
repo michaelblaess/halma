@@ -1,9 +1,10 @@
 // Background music player — shuffled playlist, loops forever
 
+// Hashed filenames — Mapping siehe scripts/decrypt-music.sh
 const TRACKS = [
-  '/music/cyberpunk.mp3',
-  '/music/epic-short.mp3',
-  '/music/epicness-middle.mp3',
+  '/music/1e6b41f0261e.mp3',
+  '/music/9685818f508c.mp3',
+  '/music/a07b560519d9.mp3',
 ];
 
 let audio: HTMLAudioElement | null = null;

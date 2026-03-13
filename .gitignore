@@ -12,7 +12,7 @@ dist
 dist-ssr
 *.local
 
-# Lizenzierte Musik (nicht im Repo, siehe public/music/README.md)
+# Entschluesselte Musik (nur lokal, nicht im Repo)
 public/music/*.mp3
 
 # Editor directories and files
