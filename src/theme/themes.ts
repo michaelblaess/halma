@@ -30,8 +30,12 @@ export interface ThemeTokens {
   // Game pieces (SVG inline styles)
   humanColor: string;
   aiColor: string;
+  player3Color: string;
+  player4Color: string;
   humanZoneFill: string;
   aiZoneFill: string;
+  player3ZoneFill: string;
+  player4ZoneFill: string;
   emptyCellFill: string;
   cellStroke: string;
   lineStroke: string;
@@ -102,8 +106,12 @@ const standard: ThemeTokens = {
 
   humanColor: '#3b82f6',
   aiColor: '#ef4444',
+  player3Color: '#f59e0b',
+  player4Color: '#8b5cf6',
   humanZoneFill: 'rgba(59,130,246,0.15)',
   aiZoneFill: 'rgba(239,68,68,0.15)',
+  player3ZoneFill: 'rgba(245,158,11,0.15)',
+  player4ZoneFill: 'rgba(139,92,246,0.15)',
   emptyCellFill: 'rgba(255,255,255,0.05)',
   cellStroke: 'rgba(255,255,255,0.15)',
   lineStroke: 'rgba(255,255,255,0.08)',
@@ -162,8 +170,12 @@ const kosmos: ThemeTokens = {
 
   humanColor: '#4a9eff',
   aiColor: '#ff5566',
+  player3Color: '#ffaa33',
+  player4Color: '#aa77ff',
   humanZoneFill: 'rgba(74,158,255,0.12)',
   aiZoneFill: 'rgba(255,85,102,0.12)',
+  player3ZoneFill: 'rgba(255,170,51,0.12)',
+  player4ZoneFill: 'rgba(170,119,255,0.12)',
   emptyCellFill: 'rgba(100,140,255,0.05)',
   cellStroke: 'rgba(100,140,255,0.18)',
   lineStroke: 'rgba(80,120,255,0.1)',
@@ -222,8 +234,12 @@ const neon: ThemeTokens = {
 
   humanColor: '#00d4ff',
   aiColor: '#ff2d78',
+  player3Color: '#ffcc00',
+  player4Color: '#bf5af2',
   humanZoneFill: 'rgba(0,212,255,0.1)',
   aiZoneFill: 'rgba(255,45,120,0.1)',
+  player3ZoneFill: 'rgba(255,204,0,0.1)',
+  player4ZoneFill: 'rgba(191,90,242,0.1)',
   emptyCellFill: 'rgba(0,212,255,0.03)',
   cellStroke: 'rgba(0,212,255,0.14)',
   lineStroke: 'rgba(0,212,255,0.07)',
@@ -282,8 +298,12 @@ const eleganz: ThemeTokens = {
 
   humanColor: '#4a90d9',
   aiColor: '#d94a4a',
+  player3Color: '#c9a020',
+  player4Color: '#8866bb',
   humanZoneFill: 'rgba(74,144,217,0.12)',
   aiZoneFill: 'rgba(217,74,74,0.12)',
+  player3ZoneFill: 'rgba(201,160,32,0.12)',
+  player4ZoneFill: 'rgba(136,102,187,0.12)',
   emptyCellFill: 'rgba(200,180,140,0.04)',
   cellStroke: 'rgba(200,180,140,0.14)',
   lineStroke: 'rgba(200,180,140,0.08)',
@@ -342,8 +362,12 @@ const holz: ThemeTokens = {
 
   humanColor: '#1a6fca',
   aiColor: '#c0392b',
+  player3Color: '#d4a04a',
+  player4Color: '#7d5bb5',
   humanZoneFill: 'rgba(26,111,202,0.2)',
   aiZoneFill: 'rgba(192,57,43,0.2)',
+  player3ZoneFill: 'rgba(212,160,74,0.2)',
+  player4ZoneFill: 'rgba(125,91,181,0.2)',
   emptyCellFill: 'rgba(0,0,0,0.12)',
   cellStroke: 'rgba(0,0,0,0.3)',
   lineStroke: 'rgba(0,0,0,0.18)',
@@ -402,8 +426,12 @@ const highContrast: ThemeTokens = {
 
   humanColor: '#4dabf7',
   aiColor: '#ff6b6b',
+  player3Color: '#ffd43b',
+  player4Color: '#b197fc',
   humanZoneFill: 'rgba(77,171,247,0.2)',
   aiZoneFill: 'rgba(255,107,107,0.2)',
+  player3ZoneFill: 'rgba(255,212,59,0.2)',
+  player4ZoneFill: 'rgba(177,151,252,0.2)',
   emptyCellFill: 'rgba(255,255,255,0.08)',
   cellStroke: 'rgba(255,255,255,0.25)',
   lineStroke: 'rgba(255,255,255,0.12)',
@@ -462,8 +490,12 @@ const hell: ThemeTokens = {
 
   humanColor: '#2563eb',
   aiColor: '#dc2626',
+  player3Color: '#d97706',
+  player4Color: '#7c3aed',
   humanZoneFill: 'rgba(37,99,235,0.15)',
   aiZoneFill: 'rgba(220,38,38,0.15)',
+  player3ZoneFill: 'rgba(217,119,6,0.15)',
+  player4ZoneFill: 'rgba(124,58,237,0.15)',
   emptyCellFill: 'rgba(0,0,0,0.08)',
   cellStroke: 'rgba(0,0,0,0.25)',
   lineStroke: 'rgba(0,0,0,0.15)',

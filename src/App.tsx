@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useGame } from './hooks/useGame';
 import Board from './components/Board';
 import GameInfo from './components/GameInfo';
+import Confetti from './components/Confetti';
 import styles from './App.module.css';
 import {
   soundSelect,
@@ -11,6 +12,7 @@ import {
   soundWin,
   soundLoss,
   soundRestart,
+  soundCombo,
 } from './audio/sounds';
 import { musicAutoStart } from './audio/music';
 import { useHaptics } from './hooks/useHaptics';
@@ -42,6 +44,7 @@ function App() {
     endTurn,
     setDifficulty,
     setSide,
+    setPlayerCount,
     restart,
     elapsedMs,
     highscores,
@@ -93,6 +96,15 @@ function App() {
     prevAiThinking.current = state.isAiThinking;
   }, [state.isAiThinking, state.winner, hapticAiMove]);
 
+  // Combo sound for 4+ jumps
+  const prevJumps = useRef(state.lastMoveJumps);
+  useEffect(() => {
+    if (state.lastMoveJumps >= 4 && prevJumps.current !== state.lastMoveJumps) {
+      soundCombo();
+    }
+    prevJumps.current = state.lastMoveJumps;
+  }, [state.lastMoveJumps]);
+
   // Win or loss
   const prevWinner = useRef(state.winner);
   useEffect(() => {
@@ -117,12 +129,15 @@ function App() {
     return state.currentPlayer === state.humanPlayer ? 'Du bist dran' : 'KI ist dran';
   }, [state.started, state.winner, state.humanPlayer, state.isAiThinking, state.currentPlayer]);
 
+  const humanWon = state.winner === state.humanPlayer;
+
   return (
     <div className={styles.app}>
       <a href="#game-board" className="skip-link">Zum Spielbrett springen</a>
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {statusText}
       </div>
+      <Confetti active={humanWon} />
       <header className={styles.mobileHeader}>
         <h1>Halma</h1>
       </header>
@@ -132,6 +147,7 @@ function App() {
         onEndTurn={endTurn}
         onSetDifficulty={setDifficulty}
         onSetSide={setSide}
+        onSetPlayerCount={setPlayerCount}
         onRestart={handleRestart}
         elapsedMs={elapsedMs}
         highscores={highscores}

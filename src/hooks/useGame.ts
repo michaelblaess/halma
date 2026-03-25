@@ -1,12 +1,18 @@
 import { useReducer, useEffect, useRef, useCallback, useState } from 'react';
-import type { GameState, Move, Difficulty, CellState, Player } from '../model/types';
-import { createInitialBoard, serializeBoard, getGoalZone } from '../model/board';
+import type { GameState, Move, Difficulty, CellState, Player, PlayerCount } from '../model/types';
+import {
+  createInitialBoard,
+  serializeBoard,
+  getGoalZone,
+  getPlayers,
+  getAiPlayers,
+  nextPlayer,
+} from '../model/board';
 import {
   getValidMoves,
   getContinuingJumps,
   applyMove,
   checkWin,
-  opponent,
 } from '../model/gameLogic';
 
 // --- Highscore ---
@@ -61,6 +67,7 @@ type GameAction =
   | { type: 'AI_MOVE'; move: Move }
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
   | { type: 'SET_SIDE'; humanPlayer: Player }
+  | { type: 'SET_PLAYER_COUNT'; playerCount: PlayerCount }
   | { type: 'RESTART' };
 
 function createInitialState(
@@ -68,24 +75,32 @@ function createInitialState(
   humanPlayer: Player = 2,
   fastMode: boolean = true,
   started: boolean = false,
+  playerCount: PlayerCount = 2,
 ): GameState {
-  // Easy + Medium: human starts, Hard: AI starts
-  const aiPlayer = opponent(humanPlayer);
-  const firstPlayer = difficulty === 'hard' ? aiPlayer : humanPlayer;
+  const players = getPlayers(playerCount);
+  const aiPlayers = getAiPlayers(playerCount, humanPlayer);
+
+  // Easy + Medium: human starts, Hard: first AI starts
+  const firstPlayer = difficulty === 'hard' ? aiPlayers[0] : humanPlayer;
+
   return {
-    board: createInitialBoard(),
+    board: createInitialBoard(playerCount),
     currentPlayer: firstPlayer,
     humanPlayer,
+    playerCount,
+    players,
+    aiPlayers,
     selectedPiece: null,
     validMoves: [],
     jumpPath: [],
     winner: null,
     difficulty,
-    isAiThinking: started && firstPlayer !== humanPlayer,
+    isAiThinking: started && aiPlayers.includes(firstPlayer),
     fastMode,
     started,
     startTime: started ? Date.now() : null,
     endTime: null,
+    lastMoveJumps: 0,
   };
 }
 
@@ -98,26 +113,28 @@ function computeValidMovesList(
   return [...simpleMoves, ...Array.from(jumpMoves.keys())];
 }
 
-function finishTurn(state: GameState, newBoard: Map<string, CellState>, player: Player): GameState {
-  const ai = opponent(state.humanPlayer);
+function finishTurn(state: GameState, newBoard: Map<string, CellState>, player: Player, jumpCount = 0): GameState {
   const isPlayerWin = checkWin(newBoard, player);
   const winner = isPlayerWin ? player : null;
+  const next = winner ? player : nextPlayer(player, state.players);
+  const nextIsAi = !winner && state.aiPlayers.includes(next);
+
   return {
     ...state,
     board: newBoard,
     selectedPiece: null,
     validMoves: [],
     jumpPath: [],
-    currentPlayer: winner ? player : (player === state.humanPlayer ? ai : state.humanPlayer),
+    currentPlayer: winner ? player : next,
     winner,
-    isAiThinking: !winner && player === state.humanPlayer,
+    isAiThinking: nextIsAi,
     endTime: winner ? Date.now() : null,
+    lastMoveJumps: player === state.humanPlayer ? jumpCount : 0,
   };
 }
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   const hp = state.humanPlayer;
-  const ai = opponent(hp);
 
   switch (action.type) {
     case 'SELECT_PIECE': {
@@ -155,16 +172,19 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const newBoard = applyMove(state.board, from, to);
 
       // Check if this was a simple (non-jump) move
-      const { simpleMoves } = getValidMoves(from, state.board, hp);
+      const { simpleMoves, jumpMoves } = getValidMoves(from, state.board, hp);
       const wasSimpleMove = simpleMoves.includes(to);
 
       if (wasSimpleMove) {
-        return finishTurn(state, newBoard, hp);
+        return finishTurn(state, newBoard, hp, 0);
       }
 
       // Was a jump — in fast mode, end turn immediately
       if (state.fastMode) {
-        return finishTurn(state, newBoard, hp);
+        // Count jumps from the BFS path
+        const path = jumpMoves.get(to);
+        const jumpCount = path ? path.length - 1 : 1;
+        return finishTurn(state, newBoard, hp, jumpCount);
       }
 
       // Normal mode: check for continuing jumps
@@ -172,7 +192,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const continuingJumps = getContinuingJumps(to, newBoard, hp, visitedInChain);
 
       if (continuingJumps.length === 0) {
-        return finishTurn(state, newBoard, hp);
+        // Total jumps = previous chain + this jump
+        return finishTurn(state, newBoard, hp, state.jumpPath.length + 1);
       }
 
       // More jumps available
@@ -182,39 +203,51 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         selectedPiece: to,
         validMoves: continuingJumps,
         jumpPath: [...state.jumpPath, from],
+        lastMoveJumps: 0,
       };
     }
 
     case 'END_TURN': {
       if (state.jumpPath.length === 0) return state;
-      return finishTurn(state, state.board, hp);
+      return finishTurn(state, state.board, hp, state.jumpPath.length);
     }
 
     case 'AI_MOVE': {
       const { move } = action;
+      const currentAi = state.currentPlayer;
       const newBoard = applyMove(state.board, move.from, move.to);
-      const isAiWin = checkWin(newBoard, ai);
-      const winner = isAiWin ? ai : null;
+      const isAiWin = checkWin(newBoard, currentAi);
+      const winner = isAiWin ? currentAi : null;
+      const next = winner ? currentAi : nextPlayer(currentAi, state.players);
+      const nextIsAi = !winner && state.aiPlayers.includes(next);
+
       return {
         ...state,
         board: newBoard,
-        currentPlayer: winner ? ai : hp,
+        currentPlayer: winner ? currentAi : next,
         winner,
-        isAiThinking: false,
+        isAiThinking: nextIsAi,
         endTime: winner ? Date.now() : null,
+        lastMoveJumps: 0,
       };
     }
 
     case 'SET_DIFFICULTY': {
-      return createInitialState(action.difficulty, state.humanPlayer, state.fastMode, false);
+      return createInitialState(action.difficulty, state.humanPlayer, state.fastMode, false, state.playerCount);
     }
 
     case 'SET_SIDE': {
-      return createInitialState(state.difficulty, action.humanPlayer, state.fastMode, false);
+      return createInitialState(state.difficulty, action.humanPlayer, state.fastMode, false, state.playerCount);
+    }
+
+    case 'SET_PLAYER_COUNT': {
+      // For 3-4 players, human is always player 2 (bottom)
+      const hp = action.playerCount > 2 ? 2 : state.humanPlayer;
+      return createInitialState(state.difficulty, hp as Player, state.fastMode, false, action.playerCount);
     }
 
     case 'RESTART': {
-      return createInitialState(state.difficulty, state.humanPlayer, state.fastMode, true);
+      return createInitialState(state.difficulty, state.humanPlayer, state.fastMode, true, state.playerCount);
     }
 
     default:
@@ -232,8 +265,6 @@ export function useGame(playerName: string) {
   const workerRef = useRef<Worker | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [highscores, setHighscores] = useState<Highscores>(loadHighscores);
-
-  const aiPlayer = opponent(state.humanPlayer);
 
   // Timer interval
   useEffect(() => {
@@ -284,19 +315,20 @@ export function useGame(playerName: string) {
     return () => worker.terminate();
   }, []);
 
-  // Trigger AI when it's the AI's turn
+  // Trigger AI when it's an AI player's turn
   useEffect(() => {
-    if (state.currentPlayer === aiPlayer && !state.winner && state.isAiThinking) {
+    if (state.aiPlayers.includes(state.currentPlayer) && !state.winner && state.isAiThinking) {
       const timer = setTimeout(() => {
         workerRef.current?.postMessage({
           board: serializeBoard(state.board),
-          currentPlayer: aiPlayer,
+          currentPlayer: state.currentPlayer,
           difficulty: state.difficulty,
+          playerCount: state.playerCount,
         });
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [state.currentPlayer, state.winner, state.isAiThinking, state.board, state.difficulty, aiPlayer]);
+  }, [state.currentPlayer, state.winner, state.isAiThinking, state.board, state.difficulty, state.aiPlayers, state.playerCount]);
 
   const selectPiece = useCallback((pos: string) => {
     dispatch({ type: 'SELECT_PIECE', pos });
@@ -318,6 +350,10 @@ export function useGame(playerName: string) {
     dispatch({ type: 'SET_SIDE', humanPlayer });
   }, []);
 
+  const setPlayerCount = useCallback((playerCount: PlayerCount) => {
+    dispatch({ type: 'SET_PLAYER_COUNT', playerCount });
+  }, []);
+
   const restart = useCallback(() => {
     dispatch({ type: 'RESTART' });
   }, []);
@@ -329,6 +365,7 @@ export function useGame(playerName: string) {
     endTurn,
     setDifficulty,
     setSide,
+    setPlayerCount,
     restart,
     elapsedMs,
     highscores,

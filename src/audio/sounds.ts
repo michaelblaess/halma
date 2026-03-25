@@ -90,6 +90,18 @@ export function soundLoss() {
   });
 }
 
+/** Combo! — player made 4+ jumps in one move */
+export function soundCombo() {
+  // Excited ascending burst + sparkle noise
+  const notes = [523, 659, 784, 988, 1175]; // C5 E5 G5 B5 D6
+  notes.forEach((freq, i) => {
+    setTimeout(() => playTone(freq, 0.15, 'triangle', 0.12), i * 60);
+  });
+  // Applause-like noise burst at the end
+  setTimeout(() => playNoise(0.3, 0.1), 280);
+  setTimeout(() => playNoise(0.2, 0.06), 400);
+}
+
 /** New game started */
 export function soundRestart() {
   playTone(523, 0.1, 'triangle', 0.08);

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useCallback, useEffect, useState } from 'react';
-import type { GameState, CellState } from '../model/types';
+import type { GameState, CellState, Player } from '../model/types';
 import {
   ALL_POSITIONS,
   adjacencyMap,
@@ -10,6 +10,9 @@ import {
   SVG_HEIGHT,
   TRIANGLE_TOP_SET,
   TRIANGLE_BOTTOM_SET,
+  TRIANGLE_NW_SET,
+  TRIANGLE_NE_SET,
+  getGoalZone,
 } from '../model/board';
 import { useTheme } from '../theme/ThemeContext';
 import type { ThemeId } from '../theme/themes';
@@ -258,10 +261,9 @@ function BoardBackground({ id, w, h }: { id: ThemeId; w: number; h: number }) {
 
 const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
   const { theme, themeId } = useTheme();
-  const { board, selectedPiece, validMoves, humanPlayer, isAiThinking, winner, started, currentPlayer } = state;
+  const { board, selectedPiece, validMoves, humanPlayer, isAiThinking, winner, started, currentPlayer, players } = state;
   const validMoveSet = new Set(validMoves);
 
-  const humanStartsTop = humanPlayer === 1;
   const isWood = themeId === 'holz';
   const isHumanTurn = currentPlayer === humanPlayer && !isAiThinking && !winner && started;
 
@@ -391,18 +393,41 @@ const Board: React.FC<BoardProps> = ({ state, onSelectPiece, onMovePiece }) => {
     }
   }, [focusablePositions, selectedPiece, onSelectPiece, onMovePiece]);
 
+  // Color zones for active players (start + goal zones)
+  const playerZoneMap = useMemo(() => {
+    const map = new Map<string, Player>();
+    for (const p of players) {
+      // Color both the start and goal zone of each active player
+      const startZone = p === 1 ? TRIANGLE_TOP_SET : p === 2 ? TRIANGLE_BOTTOM_SET : p === 3 ? TRIANGLE_NW_SET : TRIANGLE_NE_SET;
+      const goalZone = getGoalZone(p);
+      for (const pos of startZone) map.set(pos, p);
+      for (const pos of goalZone) map.set(pos, p);
+    }
+    return map;
+  }, [players]);
+
   function getCellFill(posId: string): string {
-    if (TRIANGLE_TOP_SET.has(posId)) {
-      return humanStartsTop ? theme.humanZoneFill : theme.aiZoneFill;
+    const owner = playerZoneMap.get(posId);
+    if (!owner) return theme.emptyCellFill;
+    if (owner === humanPlayer) return theme.humanZoneFill;
+    switch (owner) {
+      case 1: return theme.aiZoneFill;
+      case 2: return theme.humanZoneFill;
+      case 3: return theme.player3ZoneFill;
+      case 4: return theme.player4ZoneFill;
+      default: return theme.emptyCellFill;
     }
-    if (TRIANGLE_BOTTOM_SET.has(posId)) {
-      return humanStartsTop ? theme.aiZoneFill : theme.humanZoneFill;
-    }
-    return theme.emptyCellFill;
   }
 
   function getPieceColor(cell: CellState): string {
-    return cell === humanPlayer ? theme.humanColor : theme.aiColor;
+    if (cell === humanPlayer) return theme.humanColor;
+    switch (cell) {
+      case 1: return theme.aiColor;
+      case 2: return theme.humanColor;
+      case 3: return theme.player3Color;
+      case 4: return theme.player4Color;
+      default: return theme.aiColor;
+    }
   }
 
   const lines = useMemo(() => {

@@ -1,6 +1,22 @@
 import type { CellState, Player } from '../model/types';
 import { adjacencyMap, getGx, getGoalZone, parsePos, ALL_POSITIONS } from '../model/board';
 
+/**
+ * Measures how "advanced" a piece is toward its goal.
+ * P1 (N→S): row increases
+ * P2 (S→N): row decreases (16 - row)
+ * P3 (NW→SE): both row and gx increase
+ * P4 (NE→SW): row increases, gx decreases
+ */
+function advancement(player: Player, row: number, gx: number): number {
+  switch (player) {
+    case 1: return row;
+    case 2: return 16 - row;
+    case 3: return row + gx;       // NW→SE: both increase
+    case 4: return row + (12 - gx); // NE→SW: row up, gx down
+  }
+}
+
 export function evaluate(board: Map<string, CellState>, player: Player): number {
   let score = 0;
   const goalZone = getGoalZone(player);
@@ -13,8 +29,7 @@ export function evaluate(board: Map<string, CellState>, player: Player): number 
     const gx = getGx(row, col);
 
     // 1. Advancement toward goal (main factor)
-    const advancement = player === 1 ? row : 16 - row;
-    score += advancement * 10;
+    score += advancement(player, row, gx) * 10;
 
     // 2. Bonus for being in the goal zone
     if (goalZone.has(pos)) {

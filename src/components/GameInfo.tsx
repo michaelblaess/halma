@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { GameState, Difficulty, Player } from '../model/types';
+import type { GameState, Difficulty, Player, PlayerCount } from '../model/types';
 import { getGoalZone } from '../model/board';
 import { musicToggle, musicIsPlaying } from '../audio/music';
 import { useTheme } from '../theme/ThemeContext';
@@ -22,12 +22,19 @@ interface GameInfoProps {
   onEndTurn: () => void;
   onSetDifficulty: (d: Difficulty) => void;
   onSetSide: (p: Player) => void;
+  onSetPlayerCount: (pc: PlayerCount) => void;
   onRestart: () => void;
   elapsedMs: number;
   highscores: Highscores;
   playerName: string;
   onPlayerNameChange: (name: string) => void;
 }
+
+const playerCountLabels: Record<PlayerCount, string> = {
+  2: '1 vs KI',
+  3: '1 vs 2 KI',
+  4: '1 vs 3 KI',
+};
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -183,6 +190,13 @@ const ImpressumOverlay: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
 // --- Status renderer (shared between compact bar and desktop panel) ---
 
+function getAiLabel(state: GameState): string {
+  if (state.playerCount <= 2) return 'KI';
+  // Map player number to label
+  const aiIdx = state.aiPlayers.indexOf(state.currentPlayer);
+  return aiIdx >= 0 ? `KI ${aiIdx + 1}` : 'KI';
+}
+
 function StatusDisplay({ state, remainingPieces, humanWon, aiWon: _aiWon, humanColor, aiColor }: {
   state: GameState;
   remainingPieces: number;
@@ -205,12 +219,13 @@ function StatusDisplay({ state, remainingPieces, humanWon, aiWon: _aiWon, humanC
     );
   }
   if (isAiThinking) {
-    return <><span className="spinner" /> KI denkt...</>;
+    const label = getAiLabel(state);
+    return <><span className="spinner" /> {label} denkt...</>;
   }
   return (
     <>
       <span className="turn-dot" style={{ background: isHumanTurn ? humanColor : aiColor }} />
-      {isHumanTurn ? 'Du bist dran' : 'KI ist dran'}
+      {isHumanTurn ? 'Du bist dran' : `${getAiLabel(state)} ist dran`}
     </>
   );
 }
@@ -221,6 +236,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
   state,
   onSetDifficulty,
   onSetSide,
+  onSetPlayerCount,
   onRestart,
   elapsedMs,
   highscores,
@@ -228,7 +244,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
   onPlayerNameChange,
 }) => {
   const { theme } = useTheme();
-  const { humanPlayer, winner, isAiThinking, difficulty } = state;
+  const { humanPlayer, winner, isAiThinking, difficulty, playerCount } = state;
   const currentHighscores = highscores[difficulty];
   const [showOverlay, setShowOverlay] = useState<'highscore' | 'rules' | 'about' | 'impressum' | null>(null);
   const [musicOn, setMusicOn] = useState(musicIsPlaying);
@@ -265,7 +281,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
         <span className="compact-status">
           <StatusDisplay state={state} remainingPieces={remainingPieces} humanWon={humanWon} aiWon={aiWon} humanColor={theme.humanColor} aiColor={theme.aiColor} />
         </span>
-        <button className="compact-btn" onClick={onRestart} aria-label="Neues Spiel">&#9654;</button>
+        <button className={`compact-btn ${!state.started || state.winner ? 'glow' : ''}`} onClick={onRestart} aria-label="Neues Spiel">&#9654;</button>
         <button
           className={`compact-btn ${musicOn ? 'music-on' : ''}`}
           onClick={handleMusicToggle}
@@ -306,26 +322,45 @@ const GameInfo: React.FC<GameInfoProps> = ({
           />
 
           <div className="side-select">
-            <label>Startseite:</label>
+            <label>Spieler:</label>
             <div className="difficulty-buttons">
-              <button
-                className={`diff-btn ${humanPlayer === 2 ? 'active' : ''}`}
-                onClick={() => onSetSide(2)}
-                disabled={isAiThinking}
-                aria-pressed={humanPlayer === 2}
-              >
-                Unten
-              </button>
-              <button
-                className={`diff-btn ${humanPlayer === 1 ? 'active' : ''}`}
-                onClick={() => onSetSide(1)}
-                disabled={isAiThinking}
-                aria-pressed={humanPlayer === 1}
-              >
-                Oben
-              </button>
+              {([2, 3, 4] as PlayerCount[]).map((pc) => (
+                <button
+                  key={pc}
+                  className={`diff-btn ${playerCount === pc ? 'active' : ''}`}
+                  onClick={() => onSetPlayerCount(pc)}
+                  disabled={isAiThinking}
+                  aria-pressed={playerCount === pc}
+                >
+                  {playerCountLabels[pc]}
+                </button>
+              ))}
             </div>
           </div>
+
+          {playerCount <= 2 && (
+            <div className="side-select">
+              <label>Startseite:</label>
+              <div className="difficulty-buttons">
+                <button
+                  className={`diff-btn ${humanPlayer === 2 ? 'active' : ''}`}
+                  onClick={() => onSetSide(2)}
+                  disabled={isAiThinking}
+                  aria-pressed={humanPlayer === 2}
+                >
+                  Unten
+                </button>
+                <button
+                  className={`diff-btn ${humanPlayer === 1 ? 'active' : ''}`}
+                  onClick={() => onSetSide(1)}
+                  disabled={isAiThinking}
+                  aria-pressed={humanPlayer === 1}
+                >
+                  Oben
+                </button>
+              </div>
+            </div>
+          )}
 
           <ThemeSelect />
 
@@ -400,24 +435,43 @@ const GameInfo: React.FC<GameInfoProps> = ({
         />
 
         <div className="side-select">
-          <label>Startseite:</label>
+          <label>Spieler:</label>
           <div className="difficulty-buttons">
-            <button
-              className={`diff-btn ${humanPlayer === 2 ? 'active' : ''}`}
-              onClick={() => onSetSide(2)}
-              disabled={isAiThinking}
-            >
-              Unten
-            </button>
-            <button
-              className={`diff-btn ${humanPlayer === 1 ? 'active' : ''}`}
-              onClick={() => onSetSide(1)}
-              disabled={isAiThinking}
-            >
-              Oben
-            </button>
+            {([2, 3, 4] as PlayerCount[]).map((pc) => (
+              <button
+                key={pc}
+                className={`diff-btn ${playerCount === pc ? 'active' : ''}`}
+                onClick={() => onSetPlayerCount(pc)}
+                disabled={isAiThinking}
+                aria-pressed={playerCount === pc}
+              >
+                {playerCountLabels[pc]}
+              </button>
+            ))}
           </div>
         </div>
+
+        {playerCount <= 2 && (
+          <div className="side-select">
+            <label>Startseite:</label>
+            <div className="difficulty-buttons">
+              <button
+                className={`diff-btn ${humanPlayer === 2 ? 'active' : ''}`}
+                onClick={() => onSetSide(2)}
+                disabled={isAiThinking}
+              >
+                Unten
+              </button>
+              <button
+                className={`diff-btn ${humanPlayer === 1 ? 'active' : ''}`}
+                onClick={() => onSetSide(1)}
+                disabled={isAiThinking}
+              >
+                Oben
+              </button>
+            </div>
+          </div>
+        )}
 
         <ThemeSelect />
 
@@ -432,7 +486,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
                 'Du hast gewonnen!'
               ) : (
                 <>
-                  KI hat gewonnen!
+                  {getAiLabel(state)} hat gewonnen!
                   <br />
                   {remainingPieces === 1
                     ? 'Dir fehlte noch 1 Stein'
@@ -443,7 +497,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
           ) : isAiThinking ? (
             <div className="thinking">
               <span className="spinner" />
-              KI denkt nach...
+              {getAiLabel(state)} denkt nach...
             </div>
           ) : (
             <div className="current-turn">
@@ -451,7 +505,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
                 className="turn-dot"
                 style={{ background: state.currentPlayer === humanPlayer ? theme.humanColor : theme.aiColor }}
               />
-              {state.currentPlayer === humanPlayer ? 'Du bist dran' : 'KI ist dran'}
+              {state.currentPlayer === humanPlayer ? 'Du bist dran' : `${getAiLabel(state)} ist dran`}
             </div>
           )}
         </div>
@@ -469,7 +523,7 @@ const GameInfo: React.FC<GameInfoProps> = ({
           </div>
         )}
 
-        <button className="restart-btn" onClick={onRestart}>
+        <button className={`restart-btn ${!state.started || state.winner ? 'glow' : ''}`} onClick={onRestart}>
           Neues Spiel
         </button>
 

@@ -164,6 +164,7 @@ export function getAllMoves(
   return moves;
 }
 
+// 2-player opponent (used by minimax evaluation)
 export function opponent(player: Player): Player {
   return player === 1 ? 2 : 1;
 }

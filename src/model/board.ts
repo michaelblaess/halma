@@ -1,4 +1,4 @@
-import type { CellState, Player } from './types';
+import type { CellState, Player, PlayerCount } from './types';
 
 // Row sizes for the 17-row star board (121 positions total)
 // The star is widest at rows 4 and 12 where the side arms extend
@@ -28,7 +28,9 @@ for (let row = 0; row < 17; row++) {
   }
 }
 
-// Top triangle: rows 0-3 (Player 1 start, Player 2 goal)
+// ========== 6 Triangles of the Star ==========
+
+// North (top): rows 0-3 — Player 1 start, Player 2 goal
 export const TRIANGLE_TOP: string[] = [];
 for (let row = 0; row <= 3; row++) {
   for (let col = 0; col < ROW_SIZE[row]; col++) {
@@ -36,7 +38,7 @@ for (let row = 0; row <= 3; row++) {
   }
 }
 
-// Bottom triangle: rows 13-16 (Player 2 start, Player 1 goal)
+// South (bottom): rows 13-16 — Player 2 start, Player 1 goal
 export const TRIANGLE_BOTTOM: string[] = [];
 for (let row = 13; row <= 16; row++) {
   for (let col = 0; col < ROW_SIZE[row]; col++) {
@@ -44,8 +46,63 @@ for (let row = 13; row <= 16; row++) {
   }
 }
 
+// Upper-Left (NW): leftmost cells in rows 4-7 — Player 3 start
+// Row 4: 4 cells, Row 5: 3, Row 6: 2, Row 7: 1 = 10 pieces
+export const TRIANGLE_NW: string[] = [];
+{
+  const counts = [4, 3, 2, 1];
+  for (let i = 0; i < 4; i++) {
+    const row = 4 + i;
+    for (let col = 0; col < counts[i]; col++) {
+      TRIANGLE_NW.push(posId(row, col));
+    }
+  }
+}
+
+// Upper-Right (NE): rightmost cells in rows 4-7 — Player 4 start
+export const TRIANGLE_NE: string[] = [];
+{
+  const counts = [4, 3, 2, 1];
+  for (let i = 0; i < 4; i++) {
+    const row = 4 + i;
+    const rowSize = ROW_SIZE[row];
+    for (let col = rowSize - counts[i]; col < rowSize; col++) {
+      TRIANGLE_NE.push(posId(row, col));
+    }
+  }
+}
+
+// Lower-Left (SW): leftmost cells in rows 9-12 — Player 4 goal
+export const TRIANGLE_SW: string[] = [];
+{
+  const counts = [1, 2, 3, 4];
+  for (let i = 0; i < 4; i++) {
+    const row = 9 + i;
+    for (let col = 0; col < counts[i]; col++) {
+      TRIANGLE_SW.push(posId(row, col));
+    }
+  }
+}
+
+// Lower-Right (SE): rightmost cells in rows 9-12 — Player 3 goal
+export const TRIANGLE_SE: string[] = [];
+{
+  const counts = [1, 2, 3, 4];
+  for (let i = 0; i < 4; i++) {
+    const row = 9 + i;
+    const rowSize = ROW_SIZE[row];
+    for (let col = rowSize - counts[i]; col < rowSize; col++) {
+      TRIANGLE_SE.push(posId(row, col));
+    }
+  }
+}
+
 export const TRIANGLE_TOP_SET = new Set(TRIANGLE_TOP);
 export const TRIANGLE_BOTTOM_SET = new Set(TRIANGLE_BOTTOM);
+export const TRIANGLE_NW_SET = new Set(TRIANGLE_NW);
+export const TRIANGLE_NE_SET = new Set(TRIANGLE_NE);
+export const TRIANGLE_SW_SET = new Set(TRIANGLE_SW);
+export const TRIANGLE_SE_SET = new Set(TRIANGLE_SE);
 
 // Build adjacency map
 function buildAdjacencyMap(): Map<string, string[]> {
@@ -117,34 +174,78 @@ export function positionToPixel(row: number, col: number): { x: number; y: numbe
 export const SVG_WIDTH = MARGIN * 2 + 12 * SPACING_X;
 export const SVG_HEIGHT = MARGIN * 2 + 16 * SPACING_Y;
 
-// Create initial board state
-export function createInitialBoard(): Map<string, CellState> {
+// ========== Player → Triangle Mapping ==========
+// Player 1: North (top)    → goal: South (bottom)
+// Player 2: South (bottom) → goal: North (top) — always the human
+// Player 3: NW (upper-left) → goal: SE (lower-right)
+// Player 4: NE (upper-right) → goal: SW (lower-left)
+
+const START_ZONES: Record<number, Set<string>> = {
+  1: TRIANGLE_TOP_SET,
+  2: TRIANGLE_BOTTOM_SET,
+  3: TRIANGLE_NW_SET,
+  4: TRIANGLE_NE_SET,
+};
+
+const GOAL_ZONES: Record<number, Set<string>> = {
+  1: TRIANGLE_BOTTOM_SET,
+  2: TRIANGLE_TOP_SET,
+  3: TRIANGLE_SE_SET,
+  4: TRIANGLE_SW_SET,
+};
+
+const START_LISTS: Record<number, string[]> = {
+  1: TRIANGLE_TOP,
+  2: TRIANGLE_BOTTOM,
+  3: TRIANGLE_NW,
+  4: TRIANGLE_NE,
+};
+
+// Get goal zone for a player
+export function getGoalZone(player: Player): Set<string> {
+  return GOAL_ZONES[player];
+}
+
+export function getStartZone(player: Player): Set<string> {
+  return START_ZONES[player];
+}
+
+// Get all players for a given player count
+export function getPlayers(playerCount: PlayerCount): Player[] {
+  switch (playerCount) {
+    case 2: return [1, 2];
+    case 3: return [2, 3, 4]; // human first, then clockwise AIs
+    case 4: return [1, 2, 3, 4];
+  }
+}
+
+// Get AI players (all except human)
+export function getAiPlayers(playerCount: PlayerCount, humanPlayer: Player): Player[] {
+  return getPlayers(playerCount).filter(p => p !== humanPlayer);
+}
+
+// Get next player in turn order
+export function nextPlayer(current: Player, players: Player[]): Player {
+  const idx = players.indexOf(current);
+  return players[(idx + 1) % players.length];
+}
+
+// Create initial board state for given number of players
+export function createInitialBoard(playerCount: PlayerCount = 2): Map<string, CellState> {
   const board = new Map<string, CellState>();
 
   for (const id of ALL_POSITIONS) {
     board.set(id, 0);
   }
 
-  // Player 1 starts in the top triangle
-  for (const id of TRIANGLE_TOP) {
-    board.set(id, 1);
-  }
-
-  // Player 2 starts in the bottom triangle
-  for (const id of TRIANGLE_BOTTOM) {
-    board.set(id, 2);
+  const players = getPlayers(playerCount);
+  for (const player of players) {
+    for (const id of START_LISTS[player]) {
+      board.set(id, player as CellState);
+    }
   }
 
   return board;
-}
-
-// Get goal zone for a player
-export function getGoalZone(player: Player): Set<string> {
-  return player === 1 ? TRIANGLE_BOTTOM_SET : TRIANGLE_TOP_SET;
-}
-
-export function getStartZone(player: Player): Set<string> {
-  return player === 1 ? TRIANGLE_TOP_SET : TRIANGLE_BOTTOM_SET;
 }
 
 // Serialize/deserialize board for worker communication

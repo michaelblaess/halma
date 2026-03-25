@@ -1,13 +1,18 @@
-export type Player = 1 | 2;
+export type Player = 1 | 2 | 3 | 4;
 
-export type CellState = 0 | 1 | 2; // empty, player1, player2
+export type CellState = 0 | 1 | 2 | 3 | 4; // empty, player1-4
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
+
+export type PlayerCount = 2 | 3 | 4;
 
 export interface GameState {
   board: Map<string, CellState>;
   currentPlayer: Player;
-  humanPlayer: Player;   // 1 = top start, 2 = bottom start
+  humanPlayer: Player;   // always 2 (bottom start)
+  playerCount: PlayerCount;
+  players: Player[];     // all players in turn order
+  aiPlayers: Player[];   // all AI players
   selectedPiece: string | null;
   validMoves: string[];
   jumpPath: string[];
@@ -18,6 +23,7 @@ export interface GameState {
   started: boolean;
   startTime: number | null;
   endTime: number | null;
+  lastMoveJumps: number; // number of jumps in the last completed human move
 }
 
 export interface Move {

@@ -1,16 +1,48 @@
 import type { CellState, Move, Player } from '../model/types';
 import { getAllMoves, applyMove, checkWin, opponent } from '../model/gameLogic';
-import { parsePos } from '../model/board';
+import { parsePos, getGx } from '../model/board';
 import { evaluate } from './evaluate';
+
+// Maximum moves to evaluate at each depth level.
+// Root + depth 3: evaluate more; deeper inner nodes: prune aggressively.
+const MAX_MOVES_BY_DEPTH: Record<number, number> = {
+  4: 20,
+  3: 18,
+  2: 15,
+  1: 60, // leaf evaluations are cheap, keep more
+};
+
+function advancementDelta(player: Player, fromRow: number, fromGx: number, toRow: number, toGx: number): number {
+  switch (player) {
+    case 1: return toRow - fromRow;
+    case 2: return fromRow - toRow;
+    case 3: return (toRow + toGx) - (fromRow + fromGx);
+    case 4: return (toRow + (12 - toGx)) - (fromRow + (12 - fromGx));
+  }
+}
 
 function moveHeuristic(move: Move, player: Player): number {
   const from = parsePos(move.from);
   const to = parsePos(move.to);
+  const fromGx = getGx(from.row, from.col);
+  const toGx = getGx(to.row, to.col);
   // Prefer moves that advance toward the goal
-  const advancement = player === 1 ? to.row - from.row : from.row - to.row;
-  // Prefer jumps over simple moves
-  const isJump = move.path.length > 2 ? 5 : 0;
-  return advancement * 3 + isJump;
+  const adv = advancementDelta(player, from.row, fromGx, to.row, toGx);
+  // Prefer jumps (multi-hop = even better)
+  const jumpBonus = move.path.length > 2 ? (move.path.length - 1) * 4 : 0;
+  // Penalize backward moves more strongly
+  const backwardPenalty = adv < 0 ? adv * 2 : 0;
+  return adv * 3 + jumpBonus + backwardPenalty;
+}
+
+function getSortedMoves(
+  board: Map<string, CellState>,
+  player: Player,
+  maxMoves: number,
+): Move[] {
+  const moves = getAllMoves(board, player);
+  moves.sort((a, b) => moveHeuristic(b, player) - moveHeuristic(a, player));
+  return moves.length > maxMoves ? moves.slice(0, maxMoves) : moves;
 }
 
 export function minimax(
@@ -37,14 +69,12 @@ export function minimax(
   }
 
   const currentPlayer = maximizing ? aiPlayer : opp;
-  const moves = getAllMoves(board, currentPlayer);
+  const maxMoves = MAX_MOVES_BY_DEPTH[depth] ?? 25;
+  const moves = getSortedMoves(board, currentPlayer, maxMoves);
 
   if (moves.length === 0) {
     return { score: 0, move: null };
   }
-
-  // Move ordering: sort by heuristic for better pruning
-  moves.sort((a, b) => moveHeuristic(b, currentPlayer) - moveHeuristic(a, currentPlayer));
 
   let bestMove: Move | null = null;
 
