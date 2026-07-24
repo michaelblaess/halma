@@ -35,10 +35,30 @@ function playNext() {
   loadAndPlay();
 }
 
+// Zaehlt aufeinanderfolgende Ladefehler, damit eine kaputte Playlist nicht
+// endlos im Kreis laeuft.
+let failCount = 0;
+
+function handleError() {
+  // Fehlt eine Datei oder bricht der Download ab, endet das sonst in Stille:
+  // das Element feuert 'error', aber 'ended' kommt nie. Also selbst weiterschalten.
+  failCount++;
+  if (failCount > TRACKS.length) {
+    failCount = 0;
+    isPlaying = false;
+    return;
+  }
+  playNext();
+}
+
 function loadAndPlay() {
   if (!audio) {
     audio = new Audio();
     audio.addEventListener('ended', playNext);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('playing', () => {
+      failCount = 0;
+    });
   }
   audio.src = playlist[currentIndex];
   audio.volume = volume;

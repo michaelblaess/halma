@@ -77,10 +77,16 @@ public/
 
 ## Musik
 
-Die Hintergrundmusik ist **nicht im Repository enthalten**, da die Tracks über
-kommerzielle Lizenzen (AudioJungle / Envato Market) bezogen wurden.
-Das Spiel funktioniert auch ohne Musik — Details und Dateinamen stehen in
-[`public/music/README.md`](public/music/README.md).
+Die drei Titel sind über AudioJungle (Envato Market) unter der Music Standard
+License lizenziert. **Abspielbare Dateien liegen nicht im Repository.** Im Repo
+stehen nur AES-verschlüsselte Fassungen unter `assets/music/`, die beim Build
+mit dem Schlüssel aus `MUSIC_KEY` entschlüsselt werden.
+
+Wer das Projekt klont, bekommt also keine Musik. Das Spiel läuft vollständig
+ohne sie, der Musik-Knopf bleibt dann wirkungslos.
+
+Titel, Urheber und Lizenznachweise stehen in [`CREDITS.md`](CREDITS.md),
+technische Details in [`public/music/README.md`](public/music/README.md).
 
 ## Disclaimer
 

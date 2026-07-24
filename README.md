@@ -77,9 +77,16 @@ public/
 
 ## Music
 
-Background music is **not included in the repository** as the tracks are
-commercially licensed (AudioJungle / Envato Market).
-The game works fine without music — see [`public/music/README.md`](public/music/README.md) for details and file names.
+The three tracks are licensed through AudioJungle (Envato Market) under the
+Music Standard License. **No playable files live in the repository.** What is
+committed are AES-encrypted versions under `assets/music/`, decrypted at build
+time with the key from `MUSIC_KEY`.
+
+Clone the project and you get no music. The game runs fine without it, the music
+button simply does nothing.
+
+Titles, authors and licence details are in [`CREDITS.md`](CREDITS.md), the
+technical side in [`public/music/README.md`](public/music/README.md).
 
 ## Disclaimer
 
