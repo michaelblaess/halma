@@ -60,9 +60,24 @@ Stufe 1 ist `watch.ts`: pollt `state.json` und zeichnet den Stern mit ANSI-Farbe
 dritten Pane. Die 17 Reihen werden über `getGx()` eingerückt, ein halber gx-Schritt ist ein
 Zeichen, das Brett ist damit 25 Zeichen breit.
 
-Stufe 2 wäre der Browser-Zuschauer auf derselben `state.json`: kleiner Node-Server mit
-Server-Sent Events plus ein Zuschauer-Modus, der `Board.tsx` unverändert weiterverwendet.
-Bewusst später, weil Stufe 1 den ganzen Mechanismus schon beweist.
+Stufe 2 ist der Browser-Zuschauer unter `ai-duel/web/`, auf derselben `state.json`:
+
+```bash
+npx vite --config ai-duel/web/vite.config.ts     # http://localhost:5174
+```
+
+`Board.tsx` wird **unverändert** wiederverwendet. Der Zuschauer baut aus dem `DuelState`
+einen `GameState` und reicht No-Op-Callbacks durch. Mit `isAiThinking: true` und leeren
+`validMoves` schaltet `Board.tsx` von allein in einen nicht interaktiven Zustand, es gibt also
+keine Klickziele und keinen Tastaturfokus. Der letzte Zug wird als `selectedPiece` gesetzt,
+dadurch bekommt der zuletzt gezogene Stein den Auswahlring.
+
+Der SSE-Endpunkt `/api/state` steckt als Middleware im Dev-Server, deshalb bleibt es bei einem
+Prozess, einem Port und einem Origin. Kein CORS, kein zweiter Server. `publicDir` zeigt auf das
+`public/` der Hauptapp, damit das Icon mitbenutzt wird statt ein zweites zu pflegen.
+
+Die eigene Vite-Config liegt bewusst getrennt: `tsconfig.app.json` hat `include: ["src"]`, und
+der Haupt-Build läuft weiter unverändert (`tsc -b` mit Exit 0, `vite build` erfolgreich).
 
 ## Offene Punkte
 

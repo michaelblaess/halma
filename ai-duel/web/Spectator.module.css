@@ -1,0 +1,211 @@
+/* Zuschauer-Layout. Bewusst eigenstaendig, damit die Styles der Hauptapp
+   unberuehrt bleiben. Die Spielerfarben orientieren sich am ANSI-Renderer:
+   Spieler 1 warm, Spieler 2 kuehl. */
+
+.seite {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
+
+.kopf {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.kopf h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+}
+
+.badge {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid currentColor;
+}
+
+.sieg {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.inhalt {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.brett {
+  flex: 0 0 auto;
+}
+
+.seitenleiste {
+  flex: 1 1 320px;
+  min-width: 300px;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* --- Spieler --- */
+
+.spieler {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sitz {
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  background: rgba(128, 128, 128, 0.06);
+}
+
+.sitzKopf {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.punkt {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+.name {
+  margin-left: auto;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+.balken {
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.25);
+  overflow: hidden;
+}
+
+.balkenFuell {
+  height: 100%;
+  background: currentColor;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.zahl {
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  opacity: 0.75;
+}
+
+/* --- Verlauf --- */
+
+.verlauf h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.verlauf ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.verlauf li {
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border-left: 3px solid currentColor;
+  background: rgba(128, 128, 128, 0.07);
+}
+
+.zugKopf {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+}
+
+.nummer {
+  opacity: 0.55;
+  min-width: 1.8rem;
+}
+
+.felder {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.art {
+  opacity: 0.65;
+  font-size: 0.8rem;
+}
+
+.uhr {
+  margin-left: auto;
+  opacity: 0.45;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.grund {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  line-height: 1.35;
+}
+
+/* --- Spielerfarben --- */
+
+.p1 { color: #f0705c; }
+.p2 { color: #45c4c0; }
+
+/* --- Leerzustand --- */
+
+.leer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.leer code {
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  background: rgba(128, 128, 128, 0.15);
+  font-size: 0.9rem;
+}
+
+.status {
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+.fuss {
+  margin-top: auto;
+  opacity: 0.5;
+  font-size: 0.8rem;
+}
