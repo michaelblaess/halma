@@ -7,6 +7,10 @@
 
 ---
 
+<p align="center">
+  <img src="docs/banner.jpg" alt="halma - star halma board with four players, mid game" width="100%">
+</p>
+
 [![Stars](https://img.shields.io/github/stars/michaelblaess/halma?logo=github&logoColor=white&color=fbbf24)](https://github.com/michaelblaess/halma/stargazers)
 [![Forks](https://img.shields.io/github/forks/michaelblaess/halma?logo=github&logoColor=white&color=34d399)](https://github.com/michaelblaess/halma/network/members)
 [![Issues](https://img.shields.io/github/issues/michaelblaess/halma?logo=github&logoColor=white&color=f87171)](https://github.com/michaelblaess/halma/issues)
